@@ -20,8 +20,6 @@
 | 本地通知 | Expo Notifications | 上课提醒（可选） |
 | 版本控制 | Git + GitHub | 协作开发 |
 
-> **关键决策**：教务系统抓取若涉及验证码、CORS、反爬，建议使用**轻量云函数**（如 Vercel Serverless / Cloudflare Workers）作为代理，否则可完全本地运行。
-
 ### 三、功能模块与分工建议
 
 #### 1. 教务系统对接模块（核心）
