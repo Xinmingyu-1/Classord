@@ -26,7 +26,7 @@ export default function EditCourseScreen() {
       <CourseForm
         initial={course}
         onSubmit={(draft) => {
-          update({ ...draft, id });
+          void update({ ...draft, id });
           router.back();
         }}
       />

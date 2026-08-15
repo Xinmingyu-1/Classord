@@ -13,7 +13,7 @@ export default function NewCourseScreen() {
     <ThemedView style={{ flex: 1 }}>
       <CourseForm
         onSubmit={(draft) => {
-          add({ ...draft, id: newId() });
+          void add({ ...draft, id: newId() });
           router.back();
         }}
       />

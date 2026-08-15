@@ -5,15 +5,17 @@ import type { AppSettings, Course } from '@/models/course';
 
 const DB_NAME = 'classord.db';
 
-let db: SQLite.SQLiteDatabase | null = null;
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 /** 打开（必要时初始化）本地数据库，返回单例。 */
-export function getDatabase(): SQLite.SQLiteDatabase {
-  if (!db) {
-    db = SQLite.openDatabaseSync(DB_NAME);
-    db.execSync(SCHEMA_SQL);
+export function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+  if (!dbPromise) {
+    dbPromise = SQLite.openDatabaseAsync(DB_NAME).then(async (database) => {
+      await database.execAsync(SCHEMA_SQL);
+      return database;
+    });
   }
-  return db;
+  return dbPromise;
 }
 
 interface CourseRow {
@@ -42,20 +44,23 @@ function rowToCourse(row: CourseRow): Course {
   };
 }
 
-export function listCourses(): Course[] {
-  const rows = getDatabase().getAllSync<CourseRow>(
+export async function listCourses(): Promise<Course[]> {
+  const database = await getDatabase();
+  const rows = await database.getAllAsync<CourseRow>(
     'SELECT * FROM courses ORDER BY day_of_week, start_period',
   );
   return rows.map(rowToCourse);
 }
 
-export function getCourse(id: string): Course | null {
-  const row = getDatabase().getFirstSync<CourseRow>('SELECT * FROM courses WHERE id = ?', id);
+export async function getCourse(id: string): Promise<Course | null> {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<CourseRow>('SELECT * FROM courses WHERE id = ?', id);
   return row ? rowToCourse(row) : null;
 }
 
-export function insertCourse(course: Course): void {
-  getDatabase().runSync(
+export async function insertCourse(course: Course): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync(
     `INSERT INTO courses (id, name, teacher, location, day_of_week, start_period, end_period, weeks, color)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     course.id,
@@ -70,8 +75,9 @@ export function insertCourse(course: Course): void {
   );
 }
 
-export function updateCourse(course: Course): void {
-  getDatabase().runSync(
+export async function updateCourse(course: Course): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync(
     `UPDATE courses
      SET name = ?, teacher = ?, location = ?, day_of_week = ?, start_period = ?, end_period = ?, weeks = ?, color = ?
      WHERE id = ?`,
@@ -87,15 +93,17 @@ export function updateCourse(course: Course): void {
   );
 }
 
-export function deleteCourse(id: string): void {
-  getDatabase().runSync('DELETE FROM courses WHERE id = ?', id);
+export async function deleteCourse(id: string): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync('DELETE FROM courses WHERE id = ?', id);
 }
 
 const SETTINGS_KEY = 'app_settings';
 
 /** 读取整份设置（未保存过时返回 null）。 */
-export function loadSettings(): AppSettings | null {
-  const row = getDatabase().getFirstSync<{ value: string }>(
+export async function loadSettings(): Promise<AppSettings | null> {
+  const database = await getDatabase();
+  const row = await database.getFirstAsync<{ value: string }>(
     'SELECT value FROM settings WHERE key = ?',
     SETTINGS_KEY,
   );
@@ -103,8 +111,9 @@ export function loadSettings(): AppSettings | null {
 }
 
 /** 保存整份设置（覆盖写）。 */
-export function saveSettings(settings: AppSettings): void {
-  getDatabase().runSync(
+export async function saveSettings(settings: AppSettings): Promise<void> {
+  const database = await getDatabase();
+  await database.runAsync(
     `INSERT INTO settings (key, value) VALUES (?, ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
     SETTINGS_KEY,

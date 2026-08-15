@@ -27,7 +27,7 @@ export default function ImportExportScreen() {
     if (result.canceled) return;
     const bytes = await new File(result.assets[0].uri).bytes();
     const parsed = parseExcel(bytes);
-    parsed.forEach(add);
+    await Promise.all(parsed.map((course) => add(course)));
     setStatus(`已导入 ${parsed.length} 门课程`);
   };
 
@@ -39,7 +39,7 @@ export default function ImportExportScreen() {
     if (result.canceled) return;
     const text = await new File(result.assets[0].uri).text();
     const parsed = parseIcs(text);
-    parsed.forEach(add);
+    await Promise.all(parsed.map((course) => add(course)));
     setStatus(`已导入 ${parsed.length} 门课程`);
   };
 

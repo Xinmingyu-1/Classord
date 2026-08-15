@@ -16,7 +16,7 @@ export default function CoursesScreen() {
   const confirmRemove = (id: string, name: string) => {
     Alert.alert('删除课程', `确定删除「${name}」吗？`, [
       { text: '取消', style: 'cancel' },
-      { text: '删除', style: 'destructive', onPress: () => remove(id) },
+      { text: '删除', style: 'destructive', onPress: () => void remove(id) },
     ]);
   };
 

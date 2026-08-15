@@ -6,30 +6,30 @@ import type { Course } from '@/models/course';
 interface CoursesState {
   courses: Course[];
   loaded: boolean;
-  load: () => void;
-  add: (course: Course) => void;
-  update: (course: Course) => void;
-  remove: (id: string) => void;
+  load: () => Promise<void>;
+  add: (course: Course) => Promise<void>;
+  update: (course: Course) => Promise<void>;
+  remove: (id: string) => Promise<void>;
 }
 
 export const useCoursesStore = create<CoursesState>((set) => ({
   courses: [],
   loaded: false,
 
-  load: () => set({ courses: db.listCourses(), loaded: true }),
+  load: async () => set({ courses: await db.listCourses(), loaded: true }),
 
-  add: (course) => {
-    db.insertCourse(course);
-    set({ courses: db.listCourses() });
+  add: async (course) => {
+    await db.insertCourse(course);
+    set({ courses: await db.listCourses() });
   },
 
-  update: (course) => {
-    db.updateCourse(course);
-    set({ courses: db.listCourses() });
+  update: async (course) => {
+    await db.updateCourse(course);
+    set({ courses: await db.listCourses() });
   },
 
-  remove: (id) => {
-    db.deleteCourse(id);
-    set({ courses: db.listCourses() });
+  remove: async (id) => {
+    await db.deleteCourse(id);
+    set({ courses: await db.listCourses() });
   },
 }));

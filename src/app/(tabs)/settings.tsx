@@ -17,8 +17,8 @@ export default function SettingsScreen() {
   const [totalWeeks, setTotalWeeks] = useState(String(settings.totalWeeks));
   const [remind, setRemind] = useState(String(settings.remindBeforeMinutes));
 
-  const save = () => {
-    update({
+  const save = async () => {
+    await update({
       semesterStart,
       totalWeeks: Number(totalWeeks) || 20,
       remindBeforeMinutes: Number(remind) || 0,
@@ -27,7 +27,7 @@ export default function SettingsScreen() {
   };
 
   const toggleTheme = () => {
-    update({ theme: settings.theme === 'light' ? 'dark' : 'light' });
+    void update({ theme: settings.theme === 'light' ? 'dark' : 'light' });
   };
 
   const requestPermission = async () => {

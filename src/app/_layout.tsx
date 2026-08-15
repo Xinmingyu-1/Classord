@@ -4,7 +4,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { getDatabase } from '@/db/database';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
 
@@ -14,10 +13,11 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   useEffect(() => {
-    getDatabase();
-    useCoursesStore.getState().load();
-    useSettingsStore.getState().load();
-    SplashScreen.hideAsync();
+    (async () => {
+      await useCoursesStore.getState().load();
+      await useSettingsStore.getState().load();
+      await SplashScreen.hideAsync();
+    })();
   }, []);
 
   return (

@@ -15,24 +15,22 @@ export const DEFAULT_SETTINGS: AppSettings = {
 interface SettingsState {
   settings: AppSettings;
   loaded: boolean;
-  load: () => void;
-  update: (patch: Partial<AppSettings>) => void;
+  load: () => Promise<void>;
+  update: (patch: Partial<AppSettings>) => Promise<void>;
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
+export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   loaded: false,
 
-  load: () => {
-    const saved = db.loadSettings();
+  load: async () => {
+    const saved = await db.loadSettings();
     set({ settings: saved ? { ...DEFAULT_SETTINGS, ...saved } : DEFAULT_SETTINGS, loaded: true });
   },
 
-  update: (patch) => {
-    set((state) => {
-      const next = { ...state.settings, ...patch };
-      db.saveSettings(next);
-      return { settings: next };
-    });
+  update: async (patch) => {
+    const next = { ...get().settings, ...patch };
+    await db.saveSettings(next);
+    set({ settings: next });
   },
 }));
