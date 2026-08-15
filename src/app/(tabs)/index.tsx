@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,13 +18,18 @@ export default function WeekScheduleScreen() {
   const settings = useSettingsStore((s) => s.settings);
   const [week, setWeek] = useState(() => currentWeek(settings.semesterStart));
 
+  // 设置异步加载完成（或开学日期变化）后，把周次重置为当前周
+  useEffect(() => {
+    setWeek(currentWeek(settings.semesterStart));
+  }, [settings.semesterStart]);
+
   const visibleCourses = useMemo(
     () => courses.filter((c) => isCourseInWeek(c.weeks, week)),
     [courses, week],
   );
 
   const openDay = (dayOfWeek: number) => {
-    router.push({ pathname: '/day', params: { dayOfWeek: String(dayOfWeek) } });
+    router.push({ pathname: '/day', params: { dayOfWeek: String(dayOfWeek), week: String(week) } });
   };
 
   return (

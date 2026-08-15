@@ -5,8 +5,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { requestNotificationPermission } from '@/notifications/schedule';
+import { requestNotificationPermission, scheduleClassReminders } from '@/notifications/schedule';
+import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
+import type { ThemeMode } from '@/models/course';
+
+const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
+  { value: 'system', label: '跟随系统' },
+  { value: 'light', label: '浅色' },
+  { value: 'dark', label: '深色' },
+];
 
 /** 设置与个性化（README「设置与个性化模块」）。 */
 export default function SettingsScreen() {
@@ -23,11 +31,11 @@ export default function SettingsScreen() {
       totalWeeks: Number(totalWeeks) || 20,
       remindBeforeMinutes: Number(remind) || 0,
     });
+    await scheduleClassReminders(
+      useCoursesStore.getState().courses,
+      useSettingsStore.getState().settings,
+    );
     Alert.alert('已保存');
-  };
-
-  const toggleTheme = () => {
-    void update({ theme: settings.theme === 'light' ? 'dark' : 'light' });
   };
 
   const requestPermission = async () => {
@@ -79,11 +87,20 @@ export default function SettingsScreen() {
           </Section>
 
           <Section title="外观">
-            <Pressable onPress={toggleTheme} style={styles.button}>
-              <ThemedText type="small">
-                切换主题（当前：{settings.theme === 'light' ? '浅色' : '深色'}）
-              </ThemedText>
-            </Pressable>
+            <View style={styles.themeRow}>
+              {THEME_OPTIONS.map((opt) => {
+                const selected = settings.theme === opt.value;
+                return (
+                  <Pressable
+                    key={opt.value}
+                    onPress={() => void update({ theme: opt.value })}
+                    style={[styles.themeBtn, selected && styles.themeBtnSelected]}
+                  >
+                    <ThemedText type="small">{opt.label}</ThemedText>
+                  </Pressable>
+                );
+              })}
+            </View>
           </Section>
 
           <Pressable onPress={save} style={styles.save}>
@@ -147,6 +164,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#c7c7cc',
     alignSelf: 'flex-start',
+  },
+  themeRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+  },
+  themeBtn: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#c7c7cc',
+  },
+  themeBtnSelected: {
+    borderColor: '#3c87f7',
+    backgroundColor: '#3c87f7',
   },
   save: {
     backgroundColor: '#3c87f7',

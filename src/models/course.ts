@@ -17,7 +17,7 @@ export interface Period {
   end: string; // 如 "08:45"
 }
 
-export type ThemeMode = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark' | 'system';
 
 /** 学期与个性化设置（README「设置与个性化模块」）。 */
 export interface AppSettings {

@@ -7,17 +7,19 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
-import { dayLabel } from '@/utils/date';
+import { currentWeek, dayLabel, isCourseInWeek } from '@/utils/date';
 
 /** 日视图：某一天的课程列表（README「日视图」）。 */
 export default function DayScheduleScreen() {
-  const params = useLocalSearchParams<{ dayOfWeek?: string }>();
-  const day = Number(params.dayOfWeek) || 1;
+  const params = useLocalSearchParams<{ dayOfWeek?: string; week?: string }>();
   const courses = useCoursesStore((s) => s.courses);
   const settings = useSettingsStore((s) => s.settings);
 
+  const day = Number(params.dayOfWeek) || 1;
+  const week = Number(params.week) || currentWeek(settings.semesterStart);
+
   const list = courses
-    .filter((c) => c.dayOfWeek === day)
+    .filter((c) => c.dayOfWeek === day && isCourseInWeek(c.weeks, week))
     .sort((a, b) => a.startPeriod - b.startPeriod);
 
   const timeOf = (period: number) => {
@@ -28,9 +30,11 @@ export default function DayScheduleScreen() {
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <ThemedText type="subtitle">{dayLabel(day)}</ThemedText>
+        <ThemedText type="subtitle">
+          {dayLabel(day)} · 第 {week} 周
+        </ThemedText>
         {list.length === 0 ? (
-          <ThemedText themeColor="textSecondary">当天暂无课程</ThemedText>
+          <ThemedText themeColor="textSecondary">本周该天暂无课程</ThemedText>
         ) : (
           list.map((course) => (
             <View key={course.id} style={styles.item}>

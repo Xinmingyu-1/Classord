@@ -2,7 +2,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -12,42 +12,68 @@ import { coursesToJson } from '@/services/export/json';
 import { parseExcel } from '@/services/import/excel';
 import { parseIcs } from '@/services/import/ics';
 import { useCoursesStore } from '@/store/courses';
+import { useSettingsStore } from '@/store/settings';
 
 /** 导入导出（README「导入导出模块」）。 */
 export default function ImportExportScreen() {
   const courses = useCoursesStore((s) => s.courses);
   const add = useCoursesStore((s) => s.add);
+  const settings = useSettingsStore((s) => s.settings);
   const [status, setStatus] = useState('');
 
   const importExcel = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: '*/*',
-      copyToCacheDirectory: true,
-    });
-    if (result.canceled) return;
-    const bytes = await new File(result.assets[0].uri).bytes();
-    const parsed = parseExcel(bytes);
-    await Promise.all(parsed.map((course) => add(course)));
-    setStatus(`已导入 ${parsed.length} 门课程`);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const bytes = await new File(result.assets[0].uri).bytes();
+      const parsed = parseExcel(bytes, settings.totalWeeks);
+      if (parsed.length === 0) {
+        setStatus('未解析到课程，请检查文件格式');
+        return;
+      }
+      await Promise.all(parsed.map((course) => add(course)));
+      setStatus(`已导入 ${parsed.length} 门课程`);
+    } catch (e) {
+      Alert.alert('导入失败', e instanceof Error ? e.message : String(e));
+    }
   };
 
   const importIcs = async () => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: 'text/calendar',
-      copyToCacheDirectory: true,
-    });
-    if (result.canceled) return;
-    const text = await new File(result.assets[0].uri).text();
-    const parsed = parseIcs(text);
-    await Promise.all(parsed.map((course) => add(course)));
-    setStatus(`已导入 ${parsed.length} 门课程`);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'text/calendar',
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) return;
+      const text = await new File(result.assets[0].uri).text();
+      const parsed = parseIcs(text, settings);
+      if (parsed.length === 0) {
+        setStatus('未解析到课程，请检查文件格式');
+        return;
+      }
+      await Promise.all(parsed.map((course) => add(course)));
+      setStatus(`已导入 ${parsed.length} 门课程`);
+    } catch (e) {
+      Alert.alert('导入失败', e instanceof Error ? e.message : String(e));
+    }
   };
 
   const exportFile = async (name: string, content: string) => {
-    const file = new File(Paths.cache, name);
-    file.create({ overwrite: true, intermediates: true });
-    file.write(content);
-    if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(file.uri);
+    try {
+      const file = new File(Paths.cache, name);
+      file.create({ overwrite: true, intermediates: true });
+      file.write(content);
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('无法导出', '当前环境不支持系统分享');
+        return;
+      }
+      await Sharing.shareAsync(file.uri);
+    } catch (e) {
+      Alert.alert('导出失败', e instanceof Error ? e.message : String(e));
+    }
   };
 
   return (
@@ -64,7 +90,7 @@ export default function ImportExportScreen() {
         <ThemedText type="subtitle" style={styles.section}>
           导出
         </ThemedText>
-        <Pressable onPress={() => exportFile('classord-schedule.ics', coursesToIcs(courses))} style={styles.button}>
+        <Pressable onPress={() => exportFile('classord-schedule.ics', coursesToIcs(courses, settings))} style={styles.button}>
           <ThemedText>导出为 ICS</ThemedText>
         </Pressable>
         <Pressable onPress={() => exportFile('classord-schedule.json', coursesToJson(courses))} style={styles.button}>

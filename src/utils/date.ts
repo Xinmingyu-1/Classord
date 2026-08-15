@@ -1,10 +1,6 @@
-/** 计算当前处于学期第几周（从 1 开始；开学日之前按第 1 周处理）。 */
+/** 计算当前处于学期第几周（与 courseDate/weekOfDate 一致：第 1 周以开学日所在周计）。 */
 export function currentWeek(semesterStartISO: string): number {
-  const start = new Date(semesterStartISO).getTime();
-  const now = Date.now();
-  if (now < start) return 1;
-  const diffDays = Math.floor((now - start) / (24 * 60 * 60 * 1000));
-  return Math.floor(diffDays / 7) + 1;
+  return weekOfDate(semesterStartISO, new Date());
 }
 
 /** 判断课程在指定周是否上课。 */
@@ -56,4 +52,45 @@ export function formatWeeks(weeks: number[]): string {
     }
   }
   return parts.join(',');
+}
+
+/** 学期第 week 周、星期 dayOfWeek（1=周一 … 7=周日）对应的本地日期（第 1 周以开学日所在周计）。 */
+export function courseDate(semesterStartISO: string, week: number, dayOfWeek: number): Date {
+  const [year, month, day] = semesterStartISO.split('-').map(Number);
+  const start = new Date(year, month - 1, day);
+  const daysSinceMonday = (start.getDay() + 6) % 7; // 周一=0 … 周日=6
+  const firstMonday = new Date(year, month - 1, day - daysSinceMonday);
+  return new Date(
+    firstMonday.getFullYear(),
+    firstMonday.getMonth(),
+    firstMonday.getDate() + (week - 1) * 7 + (dayOfWeek - 1),
+  );
+}
+
+/** JS 星期（0=周日 … 6=周六）→ 应用周几（1=周一 … 7=周日）。 */
+export function dayOfWeekOf(date: Date): number {
+  return ((date.getDay() + 6) % 7) + 1;
+}
+
+/** 课程在指定周、周几、节次开始时间（"HH:mm"）对应的本地上课开始 Date。 */
+export function courseStartDate(
+  semesterStartISO: string,
+  week: number,
+  dayOfWeek: number,
+  periodStart: string,
+): Date {
+  const base = courseDate(semesterStartISO, week, dayOfWeek);
+  const [hour, minute] = periodStart.split(':').map(Number);
+  return new Date(base.getFullYear(), base.getMonth(), base.getDate(), hour, minute);
+}
+
+/** 某日期落在学期第几周（以开学日所在周为第 1 周；早于第 1 周返回 1）。与 courseDate 互逆。 */
+export function weekOfDate(semesterStartISO: string, date: Date): number {
+  const [year, month, day] = semesterStartISO.split('-').map(Number);
+  const start = new Date(year, month - 1, day);
+  const daysSinceMonday = (start.getDay() + 6) % 7;
+  const firstMonday = new Date(year, month - 1, day - daysSinceMonday);
+  const dateDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((dateDay.getTime() - firstMonday.getTime()) / 86400000);
+  return diffDays < 0 ? 1 : Math.floor(diffDays / 7) + 1;
 }

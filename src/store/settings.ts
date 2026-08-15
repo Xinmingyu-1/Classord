@@ -8,7 +8,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   semesterStart: '2026-09-01',
   totalWeeks: 20,
   periods: DEFAULT_PERIODS,
-  theme: 'light',
+  theme: 'system',
   remindBeforeMinutes: 10,
 };
 

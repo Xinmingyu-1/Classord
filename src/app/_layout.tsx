@@ -2,26 +2,32 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
 
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
+import { configureNotificationHandler, scheduleClassReminders } from '@/notifications/schedule';
+import { useResolvedTheme } from '@/hooks/use-theme';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const theme = useResolvedTheme();
 
   useEffect(() => {
     (async () => {
       await useCoursesStore.getState().load();
       await useSettingsStore.getState().load();
+      configureNotificationHandler();
+      await scheduleClassReminders(
+        useCoursesStore.getState().courses,
+        useSettingsStore.getState().settings,
+      );
       await SplashScreen.hideAsync();
     })();
   }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="day" options={{ title: '日视图' }} />
