@@ -130,3 +130,40 @@
 | 设置与个性化 | 成员 A | 中 |
 | 通知提醒 | 成员 B | 低 |
 | 测试与发布 | 全员 | 持续 |
+
+---
+
+## 开发上手（项目已初始化）
+
+本仓库已按本大纲初始化为 **Expo SDK 57 + TypeScript + Expo Router** 项目骨架。
+
+### 环境要求
+- Node.js ≥ 20
+- 手机安装 [Expo Go](https://expo.dev/go)，或使用 Android/iOS 模拟器
+
+### 启动
+```bash
+npm install          # 首次安装依赖
+npx expo start       # 启动开发服务器，扫码在 Expo Go 打开
+```
+
+### 常用脚本
+- `npm run start` / `npm run android` / `npm run ios` / `npm run web`
+- `npx tsc --noEmit`：类型检查
+- `npm run lint`：ESLint
+
+### 目录结构
+- `src/app/`：路由（`(tabs)` 为课表/课程/设置三个底部页；`day`、`course/[id]`、`import`、`login` 为堆栈页）
+- `src/models/`：数据模型（Course、AppSettings）
+- `src/db/`：SQLite 建表与 CRUD（`expo-sqlite`）
+- `src/store/`：Zustand 状态（courses、settings）
+- `src/services/`：教务抓取、Excel/ICS 导入、ICS/JSON 导出
+- `src/components/`：课程卡片、周/日视图网格、课程表单
+- `src/notifications/`：上课提醒
+- `src/theme/`、`src/constants/`：颜色标签、节次时间表
+
+### 待实现（占位，需接真实教务系统）
+- `src/services/edu/`：教务系统登录/抓取（需目标学校登录与页面结构，或改云函数代理）
+- `src/services/import/`、`src/services/export/`：真实字段映射与周次/时间换算
+- `src/notifications/schedule.ts`：上课提醒调度
+- 测试：README 第九节所列 Jest/Detox 尚未接入，可按需补充 `jest-expo`

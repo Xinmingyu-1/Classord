@@ -1,0 +1,60 @@
+import { useLocalSearchParams } from 'expo-router';
+import { ScrollView, StyleSheet, View } from 'react-native';
+
+import { CourseCard } from '@/components/CourseCard';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Spacing } from '@/constants/theme';
+import { useCoursesStore } from '@/store/courses';
+import { useSettingsStore } from '@/store/settings';
+import { dayLabel } from '@/utils/date';
+
+/** 日视图：某一天的课程列表（README「日视图」）。 */
+export default function DayScheduleScreen() {
+  const params = useLocalSearchParams<{ dayOfWeek?: string }>();
+  const day = Number(params.dayOfWeek) || 1;
+  const courses = useCoursesStore((s) => s.courses);
+  const settings = useSettingsStore((s) => s.settings);
+
+  const list = courses
+    .filter((c) => c.dayOfWeek === day)
+    .sort((a, b) => a.startPeriod - b.startPeriod);
+
+  const timeOf = (period: number) => {
+    const p = settings.periods[period - 1];
+    return p ? `${p.start}~${p.end}` : '';
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <ThemedText type="subtitle">{dayLabel(day)}</ThemedText>
+        {list.length === 0 ? (
+          <ThemedText themeColor="textSecondary">当天暂无课程</ThemedText>
+        ) : (
+          list.map((course) => (
+            <View key={course.id} style={styles.item}>
+              <ThemedText type="small" themeColor="textSecondary">
+                {course.startPeriod}-{course.endPeriod} 节 · {timeOf(course.startPeriod)}
+              </ThemedText>
+              <CourseCard course={course} />
+            </View>
+          ))
+        )}
+      </ScrollView>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: Spacing.four,
+    gap: Spacing.three,
+  },
+  item: {
+    gap: Spacing.one,
+  },
+});
