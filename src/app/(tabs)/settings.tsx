@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -46,6 +46,14 @@ export default function SettingsScreen() {
     Alert.alert(granted ? '通知权限已授权' : '通知权限被拒绝');
   };
 
+  const toggleNotifications = async (enabled: boolean) => {
+    await update({ notificationsEnabled: enabled });
+    await scheduleClassReminders(
+      useCoursesStore.getState().courses,
+      useSettingsStore.getState().settings,
+    );
+  };
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safe}>
@@ -88,9 +96,20 @@ export default function SettingsScreen() {
                 keyboardType="number-pad"
               />
             </Field>
-            <Pressable onPress={requestPermission} style={styles.button}>
-              <ThemedText type="small">授权通知</ThemedText>
-            </Pressable>
+            <View style={styles.notifRow}>
+              <View style={styles.notifToggle}>
+                <ThemedText type="small">开启通知</ThemedText>
+                <Switch
+                  value={settings.notificationsEnabled}
+                  onValueChange={(v) => void toggleNotifications(v)}
+                  trackColor={{ false: '#c7c7cc', true: '#3c87f7' }}
+                  thumbColor="#ffffff"
+                />
+              </View>
+              <Pressable onPress={requestPermission} style={styles.button}>
+                <ThemedText type="small">授权通知</ThemedText>
+              </Pressable>
+            </View>
           </Section>
 
           <Section title="外观">
@@ -176,6 +195,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#c7c7cc',
     alignSelf: 'flex-start',
+  },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  notifToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   themeRow: {
     flexDirection: 'row',

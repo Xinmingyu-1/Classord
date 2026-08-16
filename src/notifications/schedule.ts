@@ -79,8 +79,8 @@ export interface ClassReminder {
  * 返回结果按触发时间从近到远排序。
  */
 export function computeReminders(courses: Course[], settings: AppSettings): ClassReminder[] {
-  const { semesterStart, periods, remindBeforeMinutes } = settings;
-  if (remindBeforeMinutes <= 0) return [];
+  const { semesterStart, periods, remindBeforeMinutes, notificationsEnabled } = settings;
+  if (!notificationsEnabled || remindBeforeMinutes <= 0) return [];
 
   const now = Date.now();
   const reminders: ClassReminder[] = [];

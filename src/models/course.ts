@@ -26,4 +26,5 @@ export interface AppSettings {
   periods: Period[]; // 节次→时间表
   theme: ThemeMode; // 主题
   remindBeforeMinutes: number; // 上课前提醒分钟数（通知模块）
+  notificationsEnabled: boolean; // 是否开启上课提醒通知（总开关）
 }

@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   periods: DEFAULT_PERIODS,
   theme: 'system',
   remindBeforeMinutes: 10,
+  notificationsEnabled: true,
 };
 
 interface SettingsState {
