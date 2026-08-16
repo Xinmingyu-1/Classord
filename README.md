@@ -19,7 +19,7 @@
 | 文件解析 | xlsx + ical.js + ics | xlsx 解析 Excel；ical.js 解析 ICS；ics 生成 ICS |
 | 本地凭据 | expo-secure-store | 存教务账号密码（Keychain/Keystore） |
 | 文件选择/读写/分享 | expo-document-picker + expo-file-system + expo-sharing | 导入选文件、读写导出、系统分享 |
-| 本地通知 | Expo Notifications | 上课提醒（可选） |
+| 本地通知 | Expo Notifications | 上课提醒（本地通知，已实现） |
 | 版本控制 | Git + GitHub | 协作开发 |
 
 ### 三、功能模块与分工建议
@@ -57,7 +57,9 @@
 #### 5. 导入导出模块 — ✅ 已实现
 - **功能**：
   - 从本地文件选择 Excel/ICS 导入。
-  - 导出课表为 ICS 或 JSON，便于备份分享。
+  - Excel：周次列解析已实现（支持 `1-16`、`1-16周(单)`、`双周` 等），列名字段映射待对齐目标学校导出格式。
+  - ICS：解析 VEVENT（含 RRULE 周期事件展开），按开学日期 + 节次时间表反推周几/节次/周次并合并为课程。
+  - 导出课表为 ICS（按开学日期 + 周次 + 节次换算真实日期）或 JSON，便于备份分享。
 - **分工**：前端文件选择与解析，可结合第三方库。
 
 #### 6. 提醒通知模块（可选）— ✅ 已实现
@@ -71,7 +73,7 @@
 - **功能**：
   - 学期设置（开学日期、总周数）。
   - 上课时间表（节次对应时间）。
-  - 主题切换（深色/浅色）。
+  - 主题切换（深色/浅色/跟随系统）。
 - **分工**：前端开发 + 本地存储。
 
 #### 8. UI/UX 设计 — ✅ 基础已实现
@@ -152,7 +154,7 @@ npx expo start       # 启动开发服务器
 2. **iOS** 用系统相机扫码、**Android** 打开 Expo Go 扫二维码，即可在 Expo Go 里打开 App；
 3. 连不上时改用隧道模式 `npx expo start --tunnel`，或检查 Windows 防火墙是否放行 8081 端口。
 
-> 原生能力（expo-sqlite / expo-secure-store / expo-notifications 等）都已内置在 Expo Go，无需额外 development build。
+> 核心能力（expo-sqlite / expo-secure-store 等）都已内置在 Expo Go，无需额外 development build。注意：`expo-notifications` 在 **Android 的 Expo Go** 已被移除（SDK 53 起），通知功能需 development build 才能测，iOS Expo Go 不受影响。
 
 ### 常用脚本
 - `npm run start` / `npm run android` / `npm run ios` / `npm run web`
@@ -169,7 +171,9 @@ npx expo start       # 启动开发服务器
 - `src/store/`：Zustand 状态（courses、settings）
 - `src/services/`：教务抓取、Excel/ICS 导入、ICS/JSON 导出
 - `src/components/`：课程卡片、周/日视图网格、课程表单
-- `src/notifications/`：上课提醒
+- `src/notifications/`：上课提醒（权限、提醒计算与调度）
+- `src/hooks/`：主题解析（`use-theme`、`use-color-scheme`）
+- `src/utils/`：日期/周次换算（`date`）、ID 生成（`id`）
 - `src/theme/`、`src/constants/`：颜色标签、节次时间表
 
 ### 待实现（占位）
