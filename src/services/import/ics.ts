@@ -82,15 +82,26 @@ function expandStarts(event: ICAL.Component, settings: AppSettings): Date[] {
     return isInSemester(date, settings) ? [date] : [];
   }
 
+  const first = courseDate(settings.semesterStart, 1, 1);
+  const last = courseDate(settings.semesterStart, settings.totalWeeks, 7);
+  const dayAfterLast = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
+
+  // 迭代上限按「DTSTART 到学期末的天数」估算，覆盖 DAILY 及更粗频率的合法规则，
+  // 避免写死 500 导致「DTSTART 远早于开学 + FREQ=DAILY」在走到学期内之前就被截断；
+  // 再加学期天数与少量缓冲，并用硬封顶兜住极端输入（如 FREQ=SECONDLY / DTSTART 异常久远）。
+  const dtstartMs = dtstart.toJSDate().getTime();
+  const daysToEnd = Math.max(1, Math.ceil((dayAfterLast.getTime() - dtstartMs) / 86400000));
+  const maxIter = Math.min(daysToEnd + settings.totalWeeks * 7 + 100, 100000);
+
   const expand = new ICAL.RecurExpansion({ component: event, dtstart });
   const result: Date[] = [];
   let guard = 0;
   let next: ICAL.Time | null = expand.next();
-  while (next && guard < 500) {
+  while (next && guard < maxIter) {
     const date = next.toJSDate();
-    if (isInSemester(date, settings)) {
+    if (date >= first && date < dayAfterLast) {
       result.push(date);
-    } else if (weekOfDate(settings.semesterStart, date) > settings.totalWeeks) {
+    } else if (date >= dayAfterLast) {
       break; // 已过学期末尾
     }
     next = expand.next();

@@ -54,7 +54,11 @@ export default function SettingsScreen() {
   };
 
   const saveRemind = async () => {
-    const next = Number(remind) || 0;
+    const next = Number(remind);
+    if (!Number.isInteger(next) || next < 0) {
+      Alert.alert('提醒时间无效', '提醒分钟数应为非负整数，如 10；0 表示关闭提醒。');
+      return;
+    }
     if (next === settings.remindBeforeMinutes) return;
     await update({ remindBeforeMinutes: next });
     await reschedule();

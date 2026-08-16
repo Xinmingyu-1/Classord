@@ -1,5 +1,8 @@
 import type { Period } from '@/models/course';
 
+/** 单日节次数的合理上限（防手动录入/文件导入填入荒谬的节次号，如 99）。 */
+export const MAX_PERIODS = 30;
+
 /** 默认节次时间表，可在「设置」中修改。 */
 export const DEFAULT_PERIODS: Period[] = [
   { start: '08:00', end: '08:45' },

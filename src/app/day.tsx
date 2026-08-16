@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
-import { currentWeek, dayLabel, isCourseInWeek } from '@/utils/date';
+import { currentWeekClamped, dayLabel, isCourseInWeek } from '@/utils/date';
 
 /** 日视图：某一天的课程列表（README「日视图」）。 */
 export default function DayScheduleScreen() {
@@ -16,7 +16,7 @@ export default function DayScheduleScreen() {
   const settings = useSettingsStore((s) => s.settings);
 
   const day = Number(params.dayOfWeek) || 1;
-  const week = Number(params.week) || currentWeek(settings.semesterStart);
+  const week = Number(params.week) || currentWeekClamped(settings.semesterStart, settings.totalWeeks);
 
   const list = courses
     .filter((c) => c.dayOfWeek === day && isCourseInWeek(c.weeks, week))

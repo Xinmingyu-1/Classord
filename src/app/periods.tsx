@@ -43,8 +43,17 @@ export default function PeriodsScreen() {
   const resetToDefault = () => setPeriods(DEFAULT_PERIODS.map((p) => ({ ...p })));
 
   const save = async () => {
+    if (periods.length === 0) {
+      Alert.alert('请至少保留一节', '节次时间表不能为空。');
+      return;
+    }
     if (periods.some((p) => !p.start || !p.end)) {
       Alert.alert('请完善节次时间', '有节次还未设置起止时间。');
+      return;
+    }
+    // start/end 均为零填充的 "HH:MM"，字符串比较即时间先后比较。
+    if (periods.some((p) => p.start >= p.end)) {
+      Alert.alert('节次时间无效', '每节的结束时间应晚于开始时间。');
       return;
     }
     await update({ periods });

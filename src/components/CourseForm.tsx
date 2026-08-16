@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { MAX_PERIODS } from '@/constants/periods';
 import { useTheme } from '@/hooks/use-theme';
 import type { Course } from '@/models/course';
 import { COURSE_COLORS, DEFAULT_COURSE_COLOR } from '@/theme/colors';
@@ -40,6 +41,10 @@ export function CourseForm({
     }
     if (end < start) {
       Alert.alert('节次顺序错误', '结束节次不能早于起始节次。');
+      return;
+    }
+    if (end > MAX_PERIODS) {
+      Alert.alert('节次超出范围', `节次不能超过 ${MAX_PERIODS}。`);
       return;
     }
     const weeks = parseWeeksText(weeksText);

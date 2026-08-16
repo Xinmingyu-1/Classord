@@ -1,6 +1,11 @@
 /** 计算当前处于学期第几周（与 courseDate/weekOfDate 一致：第 1 周以开学日所在周计）。 */
-export function currentWeek(semesterStartISO: string): number {
-  return weekOfDate(semesterStartISO, new Date());
+export function currentWeek(semesterStartISO: string, now: Date = new Date()): number {
+  return weekOfDate(semesterStartISO, now);
+}
+
+/** 当前处于学期第几周，钳制到 [1, totalWeeks]（早于开学 → 1，晚于学期结束 → totalWeeks）。 */
+export function currentWeekClamped(semesterStartISO: string, totalWeeks: number, now: Date = new Date()): number {
+  return Math.min(totalWeeks, Math.max(1, currentWeek(semesterStartISO, now)));
 }
 
 /** 判断课程在指定周是否上课。 */

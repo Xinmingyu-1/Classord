@@ -17,7 +17,7 @@ import { WeekGrid } from '@/components/WeekGrid';
 import { Spacing } from '@/constants/theme';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
-import { currentWeek, isCourseInWeek } from '@/utils/date';
+import { currentWeekClamped, isCourseInWeek } from '@/utils/date';
 
 /** 周视图课表（默认页，README「课表展示模块」）。 */
 export default function WeekScheduleScreen() {
@@ -28,25 +28,25 @@ export default function WeekScheduleScreen() {
   // 视口实际宽度（去掉左右 padding），作为每一页的宽度；未测得前先用窗口宽度。
   const [contentWidth, setContentWidth] = useState(width);
 
-  const [week, setWeek] = useState(() => currentWeek(settings.semesterStart));
+  const [week, setWeek] = useState(() => currentWeekClamped(settings.semesterStart, settings.totalWeeks));
   // Animated.Value 用 useState 惰性初始化（避免渲染期访问 ref.current）。
   // 世界坐标：第 w 周页面左缘在 w * contentWidth，故 rest 时位移为 -week * contentWidth。
-  const [translateX] = useState(() => new Animated.Value(-currentWeek(settings.semesterStart) * width));
+  const [translateX] = useState(() => new Animated.Value(-currentWeekClamped(settings.semesterStart, settings.totalWeeks) * width));
 
   // 开学日期变化（含设置异步加载完成）后，把周次重置为当前周。
   const [lastSemesterStart, setLastSemesterStart] = useState(settings.semesterStart);
   if (lastSemesterStart !== settings.semesterStart) {
     setLastSemesterStart(settings.semesterStart);
-    setWeek(currentWeek(settings.semesterStart));
+    setWeek(currentWeekClamped(settings.semesterStart, settings.totalWeeks));
   }
 
   // App 回到前台时，把周次同步到现实日期对应的周（每次打开 App 自动对齐当前周）。
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') setWeek(currentWeek(settings.semesterStart));
+      if (state === 'active') setWeek(currentWeekClamped(settings.semesterStart, settings.totalWeeks));
     });
     return () => sub.remove();
-  }, [settings.semesterStart]);
+  }, [settings.semesterStart, settings.totalWeeks]);
 
   // 程序化切周（自动同步 / 设置加载 / 屏幕尺寸变化）时，把位移对齐到新周。
   // 滑动落点切周时此 effect 会重设到相同值，是无操作，不会闪。

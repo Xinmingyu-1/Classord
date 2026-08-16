@@ -1,6 +1,7 @@
 import {
   courseDate,
   courseStartDate,
+  currentWeekClamped,
   dayLabel,
   dayOfWeekOf,
   formatWeeks,
@@ -42,6 +43,22 @@ describe('isValidIsoDate', () => {
     expect(isValidIsoDate('2026-02-30')).toBe(false); // 不存在的日期
     expect(isValidIsoDate('2026-00-10')).toBe(false);
     expect(isValidIsoDate('2026-9-1')).toBe(false); // 缺前导零
+  });
+});
+
+describe('currentWeekClamped', () => {
+  test('早于开学钳到第 1 周', () => {
+    expect(currentWeekClamped('2026-09-01', 20, new Date(2026, 7, 15))).toBe(1);
+  });
+
+  test('学期内不钳制', () => {
+    // 2026-10-05 是开学后第 6 周（开学日所在周为第 1 周）
+    expect(currentWeekClamped('2026-09-01', 20, new Date(2026, 9, 5))).toBe(6);
+  });
+
+  test('晚于学期结束钳到 totalWeeks', () => {
+    // 2027-02-01 已超出 20 周学期
+    expect(currentWeekClamped('2026-09-01', 20, new Date(2027, 1, 1))).toBe(20);
   });
 });
 

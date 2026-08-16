@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 
+import { MAX_PERIODS } from '@/constants/periods';
 import type { Course } from '@/models/course';
 import { DEFAULT_COURSE_COLOR } from '@/theme/colors';
 import { newId } from '@/utils/id';
@@ -137,6 +138,7 @@ export function parseExcel(data: ArrayBuffer | Uint8Array, totalWeeks: number): 
     }
     if (startPeriod < 1) return [];
     if (endPeriod < startPeriod) return []; // 结束节次早于起始，跳过
+    if (endPeriod > MAX_PERIODS) return []; // 节次超出合理上限，跳过
 
     return [
       {
