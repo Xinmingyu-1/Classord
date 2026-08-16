@@ -1,27 +1,40 @@
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
 
 import type { AppSettings, Course } from '@/models/course';
 import { courseStartDate, dayLabel } from '@/utils/date';
 
+type NotificationsModule = typeof import('expo-notifications');
+
 /**
- * 按需加载 expo-notifications。
+ * 加载 expo-notifications。
  *
- * 注意：SDK 53 起 Android 的 Expo Go 移除了远程推送支持，`expo-notifications`
- * 在 import 阶段就会因其自动注册副作用抛错（见 DevicePushTokenAutoRegistration.fx），
- * 故不顶层 import，改为动态加载，失败时返回 null 以优雅降级。
+ * 不用顶层静态 import，也不用 SDK 57 有回归的动态 import()（native 上返回的 thenable
+ * 缺失 .catch/.finally、具名导出可能取不到），改用 Metro 同步 require：
+ * 直接返回模块的真实导出对象，且可 try/catch 在异常情况下优雅降级。
+ *
+ * 另外：Android 的 Expo Go 已移除 expo-notifications（SDK 53 起），require 会在模块副作用
+ * （DevicePushTokenAutoRegistration.fx → addPushTokenListener → warnOfExpoGoPushUsage）里直接抛错，
+ * 连 try/catch 都会在 LogBox 报一次错误。这里按运行环境提前跳过，避免无意义的报错日志；
+ * 通知功能需 development build 才能测。
  */
-async function loadNotifications() {
+function loadNotifications(): NotificationsModule | null {
+  if (Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+    return null;
+  }
   try {
-    return await import('expo-notifications');
-  } catch {
-    console.warn('[notifications] expo-notifications 不可用（Expo Go Android 无远程推送支持），已降级。');
+    // 有意使用同步 require（见上方注释），关闭针对它的 lint 告警。
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-notifications') as NotificationsModule;
+  } catch (e) {
+    console.warn('[notifications] expo-notifications 不可用，已降级：', e);
     return null;
   }
 }
 
 /** 请求通知权限，返回是否已授权（Expo Go Android 下不可用，返回 false）。 */
 export async function requestNotificationPermission(): Promise<boolean> {
-  const Notifications = await loadNotifications();
+  const Notifications = loadNotifications();
   if (!Notifications) return false;
   const { status } = await Notifications.requestPermissionsAsync();
   return status === 'granted';
@@ -33,8 +46,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * 不设置 handler 时，通知在前台默认不展示；这里让上课提醒即使 App 在前台也弹出。
  */
 export function configureNotificationHandler(): void {
-  void loadNotifications().then((Notifications) => {
-    if (!Notifications) return;
+  const Notifications = loadNotifications();
+  if (!Notifications) return;
+  try {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowBanner: true,
@@ -43,7 +57,9 @@ export function configureNotificationHandler(): void {
         shouldSetBadge: false,
       }),
     });
-  });
+  } catch (e) {
+    console.warn('[notifications] 配置前台通知 handler 失败，已跳过：', e);
+  }
 }
 
 /** 单条待调度的上课提醒。 */
@@ -104,7 +120,7 @@ export async function scheduleClassReminders(
   courses: Course[],
   settings: AppSettings,
 ): Promise<void> {
-  const Notifications = await loadNotifications();
+  const Notifications = loadNotifications();
   if (!Notifications) return;
 
   const maxPending = Platform.OS === 'ios' ? 64 : 500;

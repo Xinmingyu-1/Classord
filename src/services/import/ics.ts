@@ -2,7 +2,7 @@ import ICAL from 'ical.js';
 
 import type { AppSettings, Course } from '@/models/course';
 import { DEFAULT_COURSE_COLOR } from '@/theme/colors';
-import { dayOfWeekOf, weekOfDate } from '@/utils/date';
+import { courseDate, dayOfWeekOf, weekOfDate } from '@/utils/date';
 import { newId } from '@/utils/id';
 
 /** 将 Date 转为 "HH:MM"（本地时区）。 */
@@ -57,12 +57,20 @@ function toJSDate(value: unknown): Date | null {
   return null;
 }
 
+/** 判断日期是否落在学期范围内（第 1 周周一 ~ 第 totalWeeks 周周日，含端点）。 */
+function isInSemester(date: Date, settings: AppSettings): boolean {
+  const first = courseDate(settings.semesterStart, 1, 1);
+  const last = courseDate(settings.semesterStart, settings.totalWeeks, 7);
+  const dayAfterLast = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1);
+  return date >= first && date < dayAfterLast;
+}
+
 /**
- * 展开单个 VEVENT 的所有开始时间（Date[]）。
+ * 展开单个 VEVENT 的所有开始时间（Date[]），只保留落在学期范围内的 occurrence。
  *
- * 无 RRULE 时返回 DTSTART 单个时间；有 RRULE 时用 RecurExpansion 展开
- * （含 RDATE/EXDATE），并只保留落在学期范围内（第 1..totalWeeks 周）的 occurrence。
- * 迭代次数设上限以防无限规则。
+ * 无 RRULE 时校验 DTSTART 是否在学期内（weekOfDate 会把早于开学日的日期钳到第 1 周，
+ * 需用 isInSemester 排除历史事件）；有 RRULE 时用 RecurExpansion 展开（含 RDATE/EXDATE），
+ * 早于开学的 occurrence 跳过、超出学期末尾则停止（RRULE 按时间递增）。迭代设上限防无限规则。
  */
 function expandStarts(event: ICAL.Component, settings: AppSettings): Date[] {
   const dtstart = event.getFirstPropertyValue('dtstart');
@@ -70,7 +78,8 @@ function expandStarts(event: ICAL.Component, settings: AppSettings): Date[] {
 
   const rrule = event.getFirstPropertyValue('rrule');
   if (!(rrule instanceof ICAL.Recur)) {
-    return [dtstart.toJSDate()];
+    const date = dtstart.toJSDate();
+    return isInSemester(date, settings) ? [date] : [];
   }
 
   const expand = new ICAL.RecurExpansion({ component: event, dtstart });
@@ -79,8 +88,11 @@ function expandStarts(event: ICAL.Component, settings: AppSettings): Date[] {
   let next: ICAL.Time | null = expand.next();
   while (next && guard < 500) {
     const date = next.toJSDate();
-    if (weekOfDate(settings.semesterStart, date) > settings.totalWeeks) break; // 超出学期范围
-    result.push(date);
+    if (isInSemester(date, settings)) {
+      result.push(date);
+    } else if (weekOfDate(settings.semesterStart, date) > settings.totalWeeks) {
+      break; // 已过学期末尾
+    }
     next = expand.next();
     guard += 1;
   }

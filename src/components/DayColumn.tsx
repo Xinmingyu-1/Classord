@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { CourseCard } from '@/components/CourseCard';
 import { ThemedText } from '@/components/themed-text';

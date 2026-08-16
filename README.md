@@ -15,7 +15,7 @@
 | 本地数据库 | SQLite (expo-sqlite) | 异步 API（`openDatabaseAsync` 等），Web 端走 wa-sqlite |
 | 状态管理 | Zustand | 轻量，适合本地状态 |
 | HTTP 请求 | fetch（内置） | 用于教务系统请求，不额外引 axios |
-| HTML 解析 | 暂不引入 | 教务抓取暂缓；接目标学校时再选纯 JS 解析库或云函数 |
+| 教务抓取 | fetch + RSA（原生 BigInt） | 正方教务接口返回 JSON 课表，无需 HTML 解析库 |
 | 文件解析 | xlsx + ical.js + ics | xlsx 解析 Excel；ical.js 解析 ICS；ics 生成 ICS |
 | 本地凭据 | expo-secure-store | 存教务账号密码（Keychain/Keystore） |
 | 文件选择/读写/分享 | expo-document-picker + expo-file-system + expo-sharing | 导入选文件、读写导出、系统分享 |
@@ -24,14 +24,13 @@
 
 ### 三、功能模块与分工建议
 
-#### 1. 教务系统对接模块（核心）— 🚧 占位
+#### 1. 教务系统对接模块（核心）— ✅ 已实现（待真机验证）
 - **功能**：
-  - 用户输入教务系统账号、密码（可选记住，存储在 Keychain/Keystore）。
-  - 模拟登录，处理验证码（若有，可展示图片让用户输入）。
-  - 抓取当前学期课表页面，解析为标准化 JSON。
-- **分工**：
-  - 后端/爬虫逻辑（可用 Node.js 云函数或本地 JS）：负责请求、解析 HTML。
-  - 前端界面：登录表单、验证码输入、加载状态。
+  - 用户输入教务系统账号、密码（记住时存 Keychain/Keystore）。
+  - 模拟登录（`csrftoken` + RSA 公钥加密密码 POST `login_slogin.html`）；验证码可选（可展示图片回填）。
+  - 抓取当前学期课表接口（POST `xskbcx_cxXsgrkb.html`），解析为 `Course[]`。
+- **实现**：`src/services/edu/`（`rsa.ts` RSA 加密、`client.ts` 登录/会话/抓取、`parser.ts` JSON 解析），登录页 `src/app/login.tsx`。
+- **待真机验证**：会话 Cookie 抽取、验证码是否开启、接口字段名与学期代码（`client.ts` 顶部常量可调）。
 
 #### 2. 课表数据解析与存储模块 — ✅ 已实现
 - **功能**：
@@ -57,7 +56,7 @@
 #### 5. 导入导出模块 — ✅ 已实现
 - **功能**：
   - 从本地文件选择 Excel/ICS 导入。
-  - Excel：周次列解析已实现（支持 `1-16`、`1-16周(单)`、`双周` 等），列名字段映射待对齐目标学校导出格式。
+  - Excel：周次列解析已实现（支持 `1-16`、`1-16周(单)`、`双周` 等），列名字段映射已支持中英文表头别名（`HEADER_ALIASES`，目标学校表头不同时补别名即可）。
   - ICS：解析 VEVENT（含 RRULE 周期事件展开），按开学日期 + 节次时间表反推周几/节次/周次并合并为课程。
   - 导出课表为 ICS（按开学日期 + 周次 + 节次换算真实日期）或 JSON，便于备份分享。
 - **分工**：前端文件选择与解析，可结合第三方库。
@@ -86,17 +85,18 @@
 
 ### 四、数据获取方案（已确定）
 
-**结论：主路径采用「文件导入 + 手动添加」（已实现）；「教务系统自动抓取」作为可选增强（需目标学校教务系统信息，当前仅保留接口占位）。**
+**结论：主路径采用「文件导入 + 手动添加」（已实现）；「教务系统自动抓取」作为可选增强（已按正方教务实现，待校内真机验证）。**
 
 #### 主路径：文件导入 + 手动添加（已实现）
 - 用户从教务系统网页导出 Excel / ICS 文件，App 通过文件选择器导入并解析（`src/services/import/`）。
 - 也支持 App 内手动添加课程（`/course/new`）。
 - **优点**：无需处理登录、验证码、Cookie，开发量最小，当前即可用。
 
-#### 可选增强：教务系统自动抓取（占位）
-- 用户输入教务系统账号密码（存 `expo-secure-store`，仅本地），App 模拟登录并解析课表。
-- **依赖**：目标学校教务系统的登录流程、验证码、HTML/接口结构，拿到具体学校信息后才能实现。
-- 接口已预留：`src/services/edu/client.ts`、`src/services/edu/parser.ts`（当前抛「未实现」）。
+#### 可选增强：教务系统自动抓取（已实现，待真机验证）
+- 目标：河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`）。
+- 用户输入教务系统账号密码（存 `expo-secure-store`，仅本地），App 模拟登录（RSA 加密密码）并抓取课表 JSON 解析为课程。
+- 已实现：`src/services/edu/rsa.ts`（RSA）、`client.ts`（登录/会话/抓取）、`parser.ts`（JSON→Course），登录页 `src/app/login.tsx`。
+- 待真机验证：需在校内网络真机测试，核对 Cookie 抽取、验证码、接口字段与学期代码（`client.ts` 顶部常量可调）。
 
 ### 五、生产环境部署
 
@@ -177,7 +177,7 @@ npx expo start       # 启动开发服务器
 - `src/theme/`、`src/constants/`：颜色标签、节次时间表
 
 ### 待实现（占位）
-- `src/services/edu/`：教务系统登录/抓取（需目标学校登录与页面结构；数据获取方案见「四」）
-- `src/services/import/excel.ts`：Excel 列名字段映射（当前为占位，需对齐目标学校导出格式）
+- 教务系统抓取：已按正方教务实现，待校内真机验证（验证码 / Cookie / 字段名，见 `src/services/edu/client.ts` 顶部注释）
+- `src/services/import/excel.ts`：Excel 列名字段映射（已支持中英文表头别名，目标学校表头不同时补 `HEADER_ALIASES` 即可）
 - 设置页「节次时间」自定义编辑
 - 测试：Jest/Detox 尚未接入，可按需补充 `jest-expo`

@@ -17,7 +17,7 @@ import { useSettingsStore } from '@/store/settings';
 /** 导入导出（README「导入导出模块」）。 */
 export default function ImportExportScreen() {
   const courses = useCoursesStore((s) => s.courses);
-  const add = useCoursesStore((s) => s.add);
+  const addMany = useCoursesStore((s) => s.addMany);
   const settings = useSettingsStore((s) => s.settings);
   const [status, setStatus] = useState('');
 
@@ -34,7 +34,7 @@ export default function ImportExportScreen() {
         setStatus('未解析到课程，请检查文件格式');
         return;
       }
-      await Promise.all(parsed.map((course) => add(course)));
+      await addMany(parsed);
       setStatus(`已导入 ${parsed.length} 门课程`);
     } catch (e) {
       Alert.alert('导入失败', e instanceof Error ? e.message : String(e));
@@ -44,7 +44,7 @@ export default function ImportExportScreen() {
   const importIcs = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: 'text/calendar',
+        type: '*/*',
         copyToCacheDirectory: true,
       });
       if (result.canceled) return;
@@ -54,7 +54,7 @@ export default function ImportExportScreen() {
         setStatus('未解析到课程，请检查文件格式');
         return;
       }
-      await Promise.all(parsed.map((course) => add(course)));
+      await addMany(parsed);
       setStatus(`已导入 ${parsed.length} 门课程`);
     } catch (e) {
       Alert.alert('导入失败', e instanceof Error ? e.message : String(e));

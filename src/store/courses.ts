@@ -15,6 +15,7 @@ interface CoursesState {
   loaded: boolean;
   load: () => Promise<void>;
   add: (course: Course) => Promise<void>;
+  addMany: (courses: Course[]) => Promise<void>;
   update: (course: Course) => Promise<void>;
   remove: (id: string) => Promise<void>;
 }
@@ -30,6 +31,15 @@ export const useCoursesStore = create<CoursesState>((set) => ({
     const courses = await db.listCourses();
     set({ courses });
     rescheduleReminders(courses);
+  },
+
+  addMany: async (courses) => {
+    for (const course of courses) {
+      await db.insertCourse(course);
+    }
+    const all = await db.listCourses();
+    set({ courses: all });
+    rescheduleReminders(all);
   },
 
   update: async (course) => {
