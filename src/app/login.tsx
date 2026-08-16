@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  View,
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -25,9 +26,10 @@ export default function LoginScreen() {
   const [captcha, setCaptcha] = useState('');
   const [captchaImage, setCaptchaImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // 单个 EduClient 实例贯穿「登录 → 可能需要验证码 → 抓取」，以复用同一会话 Cookie。
-  const client = useRef(new EduClient()).current;
+  const [client] = useState(() => new EduClient());
   const theme = useTheme();
 
   useEffect(() => {
@@ -38,6 +40,21 @@ export default function LoginScreen() {
       }
     });
   }, []);
+
+  // 预探测登录页：若当前账号需要验证码，提前拉取并展示，让用户只点一次「登录」。
+  useEffect(() => {
+    void client
+      .prepare()
+      .then(async ({ needCaptcha }) => {
+        if (needCaptcha) {
+          const img = await client.getCaptchaImage().catch(() => null);
+          setCaptchaImage(img);
+        }
+      })
+      .catch(() => {
+        // 预探测失败不影响后续登录（login() 会重新建立会话并走两段式验证码流程）。
+      });
+  }, [client]);
 
   const submit = async () => {
     if (!username || !password) {
@@ -64,7 +81,11 @@ export default function LoginScreen() {
         const img = await client.getCaptchaImage().catch(() => null);
         setCaptchaImage(img);
         setCaptcha('');
-        Alert.alert('需要验证码', '请按图片输入验证码后重试');
+        if (img) {
+          Alert.alert('需要验证码', '请按图片输入验证码后重试');
+        } else {
+          Alert.alert('需要验证码', '验证码图片加载失败，请检查教务系统验证码接口或稍后重试');
+        }
       } else {
         Alert.alert('抓取失败', e instanceof Error ? e.message : String(e));
       }
@@ -98,15 +119,26 @@ export default function LoginScreen() {
           autoCapitalize="none"
           editable={!loading}
         />
-        <TextInput
-          style={[styles.input, { color: theme.text }]}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="密码"
-          placeholderTextColor={theme.textSecondary}
-          secureTextEntry
-          editable={!loading}
-        />
+        <View style={styles.passwordRow}>
+          <TextInput
+            style={[styles.input, styles.passwordInput, { color: theme.text }]}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="密码"
+            placeholderTextColor={theme.textSecondary}
+            secureTextEntry={!showPassword}
+            editable={!loading}
+          />
+          <Pressable
+            onPress={() => setShowPassword((v) => !v)}
+            style={styles.eyeButton}
+            hitSlop={8}
+          >
+            <ThemedText type="small" themeColor="textSecondary">
+              {showPassword ? '隐藏' : '显示'}
+            </ThemedText>
+          </Pressable>
+        </View>
 
         {captchaImage ? (
           <>
@@ -160,9 +192,23 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     fontSize: 16,
   },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  passwordInput: {
+    flex: 1,
+  },
+  eyeButton: {
+    marginLeft: Spacing.two,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
+  },
   captcha: {
-    height: 64,
-    alignSelf: 'flex-start',
+    width: 140,
+    height: 56,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 4,
   },
   submit: {
     backgroundColor: '#3c87f7',

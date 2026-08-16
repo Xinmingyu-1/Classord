@@ -10,7 +10,9 @@ import { bytesToBase64, encryptPassword } from '@/services/edu/rsa';
 const EDU_BASE = 'http://jwgl.hebtu.edu.cn';
 const LOGIN_PAGE = `${EDU_BASE}/xtgl/login_slogin.html`;
 const PUBLIC_KEY_URL = `${EDU_BASE}/xtgl/login_getPublicKey.html`;
-const CAPTCHA_URL = `${EDU_BASE}/xtgl/verifycodeServlet`; // 验证码图片接口（部分版本不同）
+// 验证码图片接口。本校 login.js 的 refreshCode() 用 `_path + '/kaptcha'`，故为 /kaptcha（非 /xtgl/verifycodeServlet）。
+// 仅在连续登录失败触发验证码后才会在页面出现 #yzmDiv/#yzmPic。
+const CAPTCHA_URL = `${EDU_BASE}/kaptcha`;
 const SCHEDULE_INDEX = `${EDU_BASE}/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default`;
 const SCHEDULE_DATA = `${EDU_BASE}/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151`;
 
@@ -75,44 +77,58 @@ export function guessTerm(now = new Date()): { xnm: string; xqm: string } {
 }
 
 /**
- * 会话 Cookie 管理。
- *
- * React Native 的 fetch 不自动维护跨请求的 Cookie（尤其 Android），
- * 需手动从 Set-Cookie 抽取会话并回带到后续请求头。iOS 的 NSURLSession 会自动存，
- * 这里手动管理可保证双端一致。若目标学校依赖的 Cookie 未正确抽取，登录/抓取会失败。
+ * 会话 Cookie 说明：不再手动解析 Set-Cookie（RN 的 fetch 不暴露该响应头、也不默认持久化 Cookie），
+ * 改为在 request() 里用 credentials: 'include' 让原生 Cookie 存储自动保存并回带 JSESSIONID。
  */
-class Session {
-  private cookies = new Map<string, string>();
 
-  header(): Record<string, string> {
-    const value = Array.from(this.cookies.entries())
-      .map(([k, v]) => `${k}=${v}`)
-      .join('; ');
-    return value ? { Cookie: value } : {};
+/** 从登录页 HTML 提取所有隐藏表单字段（name → value）。name/value 兼容带引号与不带引号两种写法。 */
+function extractHiddenFields(html: string): Record<string, string> {
+  const fields: Record<string, string> = {};
+  const re = /<input\b[^>]*\btype\s*=\s*["']?hidden["']?[^>]*>/gi;
+  for (const tag of html.match(re) ?? []) {
+    const name = tag.match(/\bname\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+    const value = tag.match(/\bvalue\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]*))/i);
+    if (!name) continue;
+    const n = name[1] ?? name[2] ?? name[3] ?? '';
+    const v = value ? (value[1] ?? value[2] ?? value[3] ?? '') : '';
+    fields[n] = v;
   }
+  return fields;
+}
 
-  /** 从响应头吸收 Set-Cookie（RN fetch 可能把多个合并为逗号分隔，尽力解析）。 */
-  absorb(res: Response): void {
-    const raw = res.headers.get('set-cookie');
-    if (!raw) return;
-    // 逗号后跟「名字=」视为新一条 Cookie；Expires 里的逗号后面是日期，不会被误拆。
-    for (const seg of raw.split(/,(?=\s*[A-Za-z][\w-]*=)/)) {
-      const first = seg.split(';')[0].trim();
-      const eq = first.indexOf('=');
-      if (eq <= 0) continue;
-      const name = first.slice(0, eq).trim();
-      const value = first.slice(eq + 1).trim();
-      if (name && value) this.cookies.set(name, value);
-    }
+/** 从登录页 HTML 提取验证码图片地址（相对路径补全为绝对；找不到返回空串）。 */
+function extractCaptchaUrl(html: string): string {
+  for (const tag of html.match(/<img\b[^>]*>/gi) ?? []) {
+    if (!/yzm|captcha|verify|checkcode|kaptcha/i.test(tag)) continue;
+    const src = tag.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1];
+    if (!src) continue;
+    if (/^https?:\/\//i.test(src)) return src;
+    return src.startsWith('/') ? `${EDU_BASE}${src}` : `${EDU_BASE}/xtgl/${src}`;
   }
+  return '';
 }
 
 // ============================================================================
 // 客户端
 // ============================================================================
 export class EduClient {
-  private readonly session = new Session();
   private csrftoken = '';
+  /** 从登录页提取的验证码图片地址（登录后可用；为空时回退 CAPTCHA_URL）。 */
+  private captchaUrl = '';
+
+  /**
+   * 预探测登录页：建立会话、缓存 csrftoken 与验证码地址，并返回是否需要验证码。
+   * 供登录页在提交前提前拉取验证码，把「点两次登录」压成「点一次」。
+   */
+  async prepare(): Promise<{ needCaptcha: boolean }> {
+    const loginHtml = await this.getText(LOGIN_PAGE);
+    const csrf =
+      loginHtml.match(/name="csrftoken"[^>]*value="([^"]*)"/)?.[1] ??
+      loginHtml.match(/value="([^"]*)"[^>]*name="csrftoken"/)?.[1];
+    if (csrf) this.csrftoken = csrf;
+    this.captchaUrl = extractCaptchaUrl(loginHtml) || CAPTCHA_URL;
+    return { needCaptcha: /name="yzm"|id="yzm"/.test(loginHtml) };
+  }
 
   /**
    * 登录教务系统。无验证码时 captcha 可省略；需要验证码时抛 EduLoginError('captcha')，
@@ -126,6 +142,7 @@ export class EduClient {
       loginHtml.match(/value="([^"]*)"[^>]*name="csrftoken"/)?.[1];
     if (!csrf) throw new EduLoginError('network', '未从登录页解析到 csrftoken（页面结构可能变化）');
     this.csrftoken = csrf;
+    this.captchaUrl = extractCaptchaUrl(loginHtml) || CAPTCHA_URL;
 
     const needCaptcha = /name="yzm"|id="yzm"/.test(loginHtml);
 
@@ -136,8 +153,16 @@ export class EduClient {
     // 3. 加密密码
     const mm = encryptPassword(password, key.modulus, key.exponent);
 
-    // 4. 提交登录
-    const body: Record<string, string> = { csrftoken: this.csrftoken, yhm: username, mm };
+    // 4. 提交登录。字段对齐真实表单：除 yhm/mm 外，还要把登录页里的隐藏字段一并提交——
+    //    其中 mmsfjm=1 告诉服务端「密码已 RSA 加密」，缺了它服务端会把密文当明文比对，
+    //    从而报「用户名或密码不正确」。csrftoken 是逗号连接的 uuid,compactUUID。
+    const body: Record<string, string> = {
+      ...extractHiddenFields(loginHtml),
+      csrftoken: this.csrftoken,
+      language: 'zh_CN',
+      yhm: username,
+      mm,
+    };
     if (needCaptcha) {
       if (!captcha) throw new EduLoginError('captcha', '登录需要验证码');
       body.yzm = captcha;
@@ -149,11 +174,17 @@ export class EduClient {
 
   /** 拉取登录验证码图片，返回 data URL（供 <Image> 展示）。需在触发验证码后再调用。 */
   async getCaptchaImage(): Promise<string> {
-    const res = await this.request(`${CAPTCHA_URL}?t=${Date.now()}`);
+    const url = this.captchaUrl || CAPTCHA_URL;
+    const res = await this.request(`${url}${url.includes('?') ? '&' : '?'}t=${Date.now()}`);
+    const rawType = res.headers.get('content-type') ?? '';
+    // 归一化 MIME：去掉 ;charset=... 等参数，避免 data URI 混入 charset 导致 <Image> 无法渲染
+    const mime = (rawType.split(';')[0] || 'image/jpeg').trim();
+    if (rawType && !mime.startsWith('image/')) {
+      throw new EduLoginError('network', `验证码接口返回非图片（${rawType}），地址可能不对：${url}`);
+    }
     const buf = await res.arrayBuffer();
     const b64 = bytesToBase64(new Uint8Array(buf));
-    const contentType = res.headers.get('content-type') ?? 'image/jpeg';
-    return `data:${contentType};base64,${b64}`;
+    return `data:${mime};base64,${b64}`;
   }
 
   /** 抓取个人课表原始 JSON（登录后调用）。xnm/xqm 缺省按当前日期推断。 */
@@ -161,7 +192,6 @@ export class EduClient {
     const term = guessTerm();
     const xnmv = xnm ?? term.xnm;
     const xqmv = xqm ?? term.xqm;
-
     // 先访问课表查询页建立上下文（部分版本需先访问该页才能查数据）
     await this.getText(SCHEDULE_INDEX);
 
@@ -187,12 +217,10 @@ export class EduClient {
   // 内部
   // ----------------------------------------------------------------------
   private async request(url: string, init?: RequestInit): Promise<Response> {
-    const headers: Record<string, string> = {
-      ...this.session.header(),
-      ...((init?.headers as Record<string, string> | undefined) ?? {}),
-    };
-    const res = await fetch(url, { ...init, headers });
-    this.session.absorb(res);
+    // credentials: 'include' 让 RN 原生网络层用原生 Cookie 存储自动保存并回带会话 Cookie（JSESSIONID）。
+    // RN 的 fetch 不暴露 set-cookie 响应头、默认也不持久化 Cookie；不设置的话登录页/公钥/登录提交
+    // 会散落在不同会话，导致 csrftoken 校验失败、被服务端当成「账号或密码错误」。
+    const res = await fetch(url, { ...init, credentials: 'include' });
     return res;
   }
 
@@ -207,12 +235,12 @@ export class EduClient {
   }
 
   private async postText(url: string, body: Record<string, string>): Promise<string> {
+    // 登录是普通表单提交（document.forms[0].submit()），不带 X-Requested-With（那是 AJAX 才有的头）。
     const res = await this.request(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         Referer: LOGIN_PAGE,
-        'X-Requested-With': 'XMLHttpRequest',
       },
       body: encodeForm(body),
     });

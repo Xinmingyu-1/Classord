@@ -139,7 +139,10 @@ function pkcs1Pad(message: Uint8Array, k: number): Uint8Array {
 export function encryptPassword(password: string, modulusB64: string, exponentB64: string): string {
   const nBytes = base64ToBytes(modulusB64);
   const n = bytesToBigInt(nBytes);
-  const k = nBytes.length; // 模长（字节）
+  // 模数位长对应的字节数。Java BigInteger.toByteArray() 会给 1024 位模数补一个前导 0x00 符号字节，
+  // 使 nBytes.length 变成 129；而 PKCS#1 填充长度 k 应按真实位长算：1024 位 → 128 字节。
+  // 对齐正方 jsbn 的 (bitLength()+7)>>3。若直接取 nBytes.length 会多算 1 字节，导致服务端解密失败。
+  const k = (n.toString(2).length + 7) >> 3;
 
   const exponentBytes = base64ToBytes(exponentB64 || 'AQAB');
   const e = exponentBytes.length > 0 ? bytesToBigInt(exponentBytes) : 65537n;

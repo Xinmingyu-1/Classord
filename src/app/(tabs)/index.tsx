@@ -29,6 +29,8 @@ export default function WeekScheduleScreen() {
     () => courses.filter((c) => isCourseInWeek(c.weeks, week)),
     [courses, week],
   );
+  // 网格节次行数：至少覆盖设置的节次表；若有课程结束节次更高则一并纳入，避免被裁剪。
+  const periodCount = Math.max(settings.periods.length, ...visibleCourses.map((c) => c.endPeriod));
 
   const openDay = (dayOfWeek: number) => {
     router.push({ pathname: '/day', params: { dayOfWeek: String(dayOfWeek), week: String(week) } });
@@ -52,7 +54,7 @@ export default function WeekScheduleScreen() {
             <ThemedText themeColor="textSecondary">暂无课程，去「课程」页添加或导入</ThemedText>
           </View>
         ) : (
-          <WeekGrid courses={visibleCourses} onPressDay={openDay} />
+          <WeekGrid courses={visibleCourses} periodCount={periodCount} onPressDay={openDay} />
         )}
       </SafeAreaView>
     </ThemedView>
