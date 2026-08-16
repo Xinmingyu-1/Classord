@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -5,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { requestNotificationPermission, scheduleClassReminders } from '@/notifications/schedule';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
@@ -20,11 +22,12 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
 export default function SettingsScreen() {
   const settings = useSettingsStore((s) => s.settings);
   const update = useSettingsStore((s) => s.update);
+  const theme = useTheme();
+  const router = useRouter();
 
   const [semesterStart, setSemesterStart] = useState(settings.semesterStart);
   const [totalWeeks, setTotalWeeks] = useState(String(settings.totalWeeks));
   const [remind, setRemind] = useState(String(settings.remindBeforeMinutes));
-
   const save = async () => {
     await update({
       semesterStart,
@@ -50,15 +53,16 @@ export default function SettingsScreen() {
           <Section title="学期设置">
             <Field label="开学日期（YYYY-MM-DD）">
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.text }]}
                 value={semesterStart}
                 onChangeText={setSemesterStart}
                 placeholder="2026-09-01"
+                placeholderTextColor={theme.textSecondary}
               />
             </Field>
             <Field label="总周数">
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.text }]}
                 value={totalWeeks}
                 onChangeText={setTotalWeeks}
                 keyboardType="number-pad"
@@ -67,15 +71,18 @@ export default function SettingsScreen() {
           </Section>
 
           <Section title="上课时间表">
-            <ThemedText type="small" themeColor="textSecondary">
-              当前共 {settings.periods.length} 节，默认节次时间已内置（自定义编辑待实现）。
-            </ThemedText>
+            <Pressable onPress={() => router.push('/periods')} style={styles.periodsRow}>
+              <ThemedText type="small" themeColor="textSecondary">
+                共 {settings.periods.length} 节，点击编辑
+              </ThemedText>
+              <ThemedText themeColor="textSecondary">›</ThemedText>
+            </Pressable>
           </Section>
 
           <Section title="提醒通知">
             <Field label="上课前提醒（分钟）">
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: theme.text }]}
                 value={remind}
                 onChangeText={setRemind}
                 keyboardType="number-pad"
@@ -148,6 +155,11 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: Spacing.two,
+  },
+  periodsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   input: {
     borderWidth: 1,

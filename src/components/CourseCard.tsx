@@ -11,17 +11,20 @@ import type { Course } from '@/models/course';
 export function CourseCard({
   course,
   compact = false,
+  maxLines = 2,
   style,
 }: {
   course: Course;
   compact?: boolean;
+  /** 课程名最多显示行数；周视图网格按课程块高度动态传入，节数越多显示越多。 */
+  maxLines?: number;
   style?: StyleProp<ViewStyle>;
 }) {
   return (
     <ThemedView type="backgroundElement" style={[styles.card, style]}>
       <View style={[styles.colorBar, { backgroundColor: course.color }]} />
       <View style={[styles.body, compact && styles.bodyCompact]}>
-        <ThemedText type="smallBold" numberOfLines={2}>
+        <ThemedText type="smallBold" numberOfLines={maxLines}>
           {course.name}
         </ThemedText>
         {!compact && (

@@ -41,11 +41,11 @@ export default function WeekScheduleScreen() {
       <SafeAreaView edges={['top']} style={styles.safe}>
         <View style={styles.weekBar}>
           <Pressable onPress={() => setWeek((w) => Math.max(1, w - 1))} hitSlop={12}>
-            <ThemedText type="subtitle">‹</ThemedText>
+            <ThemedText style={styles.arrow}>‹</ThemedText>
           </Pressable>
-          <ThemedText type="subtitle">第 {week} 周</ThemedText>
+          <ThemedText style={styles.weekLabel}>第 {week} 周</ThemedText>
           <Pressable onPress={() => setWeek((w) => Math.min(settings.totalWeeks, w + 1))} hitSlop={12}>
-            <ThemedText type="subtitle">›</ThemedText>
+            <ThemedText style={styles.arrow}>›</ThemedText>
           </Pressable>
         </View>
 
@@ -54,7 +54,12 @@ export default function WeekScheduleScreen() {
             <ThemedText themeColor="textSecondary">暂无课程，去「课程」页添加或导入</ThemedText>
           </View>
         ) : (
-          <WeekGrid courses={visibleCourses} periodCount={periodCount} onPressDay={openDay} />
+          <WeekGrid
+            courses={visibleCourses}
+            periodCount={periodCount}
+            periods={settings.periods}
+            onPressDay={openDay}
+          />
         )}
       </SafeAreaView>
     </ThemedView>
@@ -73,8 +78,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.three,
+    paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.two,
+  },
+  weekLabel: {
+    fontSize: 28,
+    lineHeight: 30,
+    fontWeight: '700',
+  },
+  arrow: {
+    fontSize: 27,
+    lineHeight: 24,
+    fontWeight: '600',
   },
   empty: {
     flex: 1,

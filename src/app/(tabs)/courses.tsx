@@ -6,7 +6,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useCoursesStore } from '@/store/courses';
-import { dayLabel } from '@/utils/date';
 
 /** 课程管理列表（README「课程管理模块」）。 */
 export default function CoursesScreen() {
@@ -42,7 +41,7 @@ export default function CoursesScreen() {
                   <View style={styles.itemText}>
                     <ThemedText type="smallBold">{item.name}</ThemedText>
                     <ThemedText type="small" themeColor="textSecondary">
-                      {dayLabel(item.dayOfWeek)} · 第 {item.startPeriod}-{item.endPeriod} 节
+                      第 {item.startPeriod}-{item.endPeriod} 节
                       {item.location ? ` · ${item.location}` : ''}
                     </ThemedText>
                   </View>

@@ -44,6 +44,15 @@ function firstNumber(...values: unknown[]): number {
   return 0;
 }
 
+/** 去掉地点文本里混入的「星期X / 周X」字样（部分学校把星期写进了教室/校区字段）。 */
+function stripWeekday(text: string): string {
+  return text
+    .replace(/星期[一二三四五六日天1-7]/g, '')
+    .replace(/周[一二三四五六日天1-7]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** 解析节次 "1-2" / "第1-2节" / "1,2" → [起始, 结束]（1-based）。 */
 function parsePeriods(raw: string): [number, number] {
   const nums = raw
@@ -118,9 +127,9 @@ export function parseScheduleJson(json: unknown, totalWeeks: number): Course[] {
     if (!name) continue;
 
     const teacher = firstString(entry.xm, entry.jsxm);
-    const location = [firstString(entry.xqjmc), firstString(entry.jasmc, entry.cdmc)]
-      .filter(Boolean)
-      .join(' ');
+    const location = stripWeekday(
+      [firstString(entry.xqjmc), firstString(entry.jasmc, entry.cdmc)].filter(Boolean).join(' '),
+    );
 
     const dayOfWeek = firstNumber(entry.xqj, entry.skxq);
     if (dayOfWeek < 1 || dayOfWeek > 7) continue;

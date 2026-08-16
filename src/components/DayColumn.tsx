@@ -29,13 +29,17 @@ export function DayColumn({
       </View>
       <View style={{ height: gridHeight }}>
         {sorted.map((course) => {
+          const span = course.endPeriod - course.startPeriod + 1;
           const top = (course.startPeriod - 1) * PERIOD_HEIGHT;
-          const height = (course.endPeriod - course.startPeriod + 1) * PERIOD_HEIGHT - COURSE_GAP;
+          const height = span * PERIOD_HEIGHT - COURSE_GAP;
+          // 课程名最多行数与块高度关联：扣除上下内边距 4px，按行高 20px（smallBold）折算。
+          const maxLines = Math.max(1, Math.floor((height - 4) / 20));
           return (
             <CourseCard
               key={course.id}
               course={course}
               compact
+              maxLines={maxLines}
               style={{ position: 'absolute', top, left: 0, right: 0, height }}
             />
           );

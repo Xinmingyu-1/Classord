@@ -137,6 +137,10 @@ export class EduClient {
   async login(username: string, password: string, captcha = ''): Promise<void> {
     // 1. 打开登录页：建立会话、取 csrftoken、判断是否需要验证码
     const loginHtml = await this.getText(LOGIN_PAGE);
+    // 已登录时访问登录页会被重定向到首页，页面里没有 yhm/csrftoken 输入框；
+    // 此时会话仍有效，直接跳过登录提交（否则会误报「页面结构可能变化」）。
+    if (!/name="yhm"|id="yhm"|name="csrftoken"/.test(loginHtml)) return;
+
     const csrf =
       loginHtml.match(/name="csrftoken"[^>]*value="([^"]*)"/)?.[1] ??
       loginHtml.match(/value="([^"]*)"[^>]*name="csrftoken"/)?.[1];

@@ -3,18 +3,20 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { DayColumn } from '@/components/DayColumn';
 import { ThemedText } from '@/components/themed-text';
 import { DAY_HEADER_HEIGHT, PERIOD_HEIGHT, TIME_COL_WIDTH } from '@/constants/timetable';
-import type { Course } from '@/models/course';
+import type { Course, Period } from '@/models/course';
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
 
-/** 周视图网格：左侧节次列 + 7 天课程列（README「周视图」）。 */
+/** 周视图网格：左侧节次列（节次号 + 起始时间）+ 7 天课程列（README「周视图」）。 */
 export function WeekGrid({
   courses,
   periodCount,
+  periods,
   onPressDay,
 }: {
   courses: Course[];
   periodCount: number;
+  periods: Period[];
   onPressDay?: (dayOfWeek: number) => void;
 }) {
   return (
@@ -26,6 +28,9 @@ export function WeekGrid({
             <View key={i} style={styles.periodCell}>
               <ThemedText type="small" themeColor="textSecondary" style={styles.periodText}>
                 {i + 1}
+              </ThemedText>
+              <ThemedText themeColor="textSecondary" style={styles.timeText}>
+                {periods[i]?.start ?? ''}
               </ThemedText>
             </View>
           ))}
@@ -65,9 +70,14 @@ const styles = StyleSheet.create({
     height: PERIOD_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 2,
   },
   periodText: {
     fontSize: 12,
     lineHeight: 16,
+  },
+  timeText: {
+    fontSize: 10,
+    lineHeight: 14,
   },
 });

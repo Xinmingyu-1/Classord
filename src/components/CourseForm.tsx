@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import type { Course } from '@/models/course';
 import { COURSE_COLORS, DEFAULT_COURSE_COLOR } from '@/theme/colors';
 import { formatWeeks, parseWeeksText } from '@/utils/date';
@@ -28,6 +29,7 @@ export function CourseForm({
   const [endPeriod, setEndPeriod] = useState(String(initial?.endPeriod ?? 1));
   const [weeksText, setWeeksText] = useState(initial ? formatWeeks(initial.weeks) : '1-20');
   const [color, setColor] = useState(initial?.color ?? DEFAULT_COURSE_COLOR);
+  const theme = useTheme();
 
   const submit = () => {
     onSubmit({
@@ -45,13 +47,31 @@ export function CourseForm({
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <Field label="课程名">
-        <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="如：高等数学" />
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
+          value={name}
+          onChangeText={setName}
+          placeholder="如：高等数学"
+          placeholderTextColor={theme.textSecondary}
+        />
       </Field>
       <Field label="教师">
-        <TextInput style={styles.input} value={teacher} onChangeText={setTeacher} placeholder="选填" />
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
+          value={teacher}
+          onChangeText={setTeacher}
+          placeholder="选填"
+          placeholderTextColor={theme.textSecondary}
+        />
       </Field>
       <Field label="地点">
-        <TextInput style={styles.input} value={location} onChangeText={setLocation} placeholder="选填" />
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
+          value={location}
+          onChangeText={setLocation}
+          placeholder="选填"
+          placeholderTextColor={theme.textSecondary}
+        />
       </Field>
 
       <Field label="周几">
@@ -65,25 +85,33 @@ export function CourseForm({
       <Field label="节次（起止）">
         <View style={styles.row}>
           <TextInput
-            style={[styles.input, styles.narrow]}
+            style={[styles.input, styles.narrow, { color: theme.text }]}
             value={startPeriod}
             onChangeText={setStartPeriod}
             keyboardType="number-pad"
             placeholder="1"
+            placeholderTextColor={theme.textSecondary}
           />
           <ThemedText>—</ThemedText>
           <TextInput
-            style={[styles.input, styles.narrow]}
+            style={[styles.input, styles.narrow, { color: theme.text }]}
             value={endPeriod}
             onChangeText={setEndPeriod}
             keyboardType="number-pad"
             placeholder="2"
+            placeholderTextColor={theme.textSecondary}
           />
         </View>
       </Field>
 
       <Field label="周次（如 1-16 或 1,3,5）">
-        <TextInput style={styles.input} value={weeksText} onChangeText={setWeeksText} placeholder="1-20" />
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
+          value={weeksText}
+          onChangeText={setWeeksText}
+          placeholder="1-20"
+          placeholderTextColor={theme.textSecondary}
+        />
       </Field>
 
       <Field label="颜色标签">
