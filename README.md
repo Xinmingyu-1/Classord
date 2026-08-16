@@ -84,7 +84,7 @@
 - **功能**：单元测试、集成测试、打包发布。
 - **技术**：Jest、Detox、EAS Build。
 - **进度**：
-  - ✅ Jest 单元测试已接入（`npm test`，4 个套件 35 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算、ICS 节次匹配、Excel 周次解析、通知触发时间计算。
+  - ✅ Jest 单元测试已接入（`npm test`，4 个套件 39 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算（含周次钳制）、ICS 节次匹配与 RRULE 展开、Excel 周次解析、通知触发时间计算。
   - ✅ GitHub Actions CI 已接入（`.github/workflows/ci.yml`，push/PR 到 `main`/`develop` 跑 lint → 类型检查 → 单测 → `expo export` 构建校验）。
   - ✅ EAS 本地预备完成：`eas-cli` 已装、`app.json`/`eas.json` 校验通过（`android.package`/`ios.bundleIdentifier` 已补全）。
   - ⏳ Detox 集成测试尚未接入（需 `expo prebuild` + 模拟器）。
@@ -192,4 +192,3 @@ npx expo start       # 启动开发服务器
 - **通知功能**：Android 端需 development build（Expo Go 已移除 `expo-notifications`）
 - **Detox 集成测试**：需 `expo prebuild` + 模拟器
 - **EAS 打包 / 上架**：需 Expo 账号与商店开发者账号
-- **已知边界问题**：ICS RRULE 展开上限、节次表无校验等
