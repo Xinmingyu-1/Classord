@@ -7,7 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { requestNotificationPermission, scheduleClassReminders } from '@/notifications/schedule';
+import { notificationsSupported, requestNotificationPermission, scheduleClassReminders } from '@/notifications/schedule';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
 import type { ThemeMode } from '@/models/course';
@@ -28,30 +28,40 @@ export default function SettingsScreen() {
   const [semesterStart, setSemesterStart] = useState(settings.semesterStart);
   const [totalWeeks, setTotalWeeks] = useState(String(settings.totalWeeks));
   const [remind, setRemind] = useState(String(settings.remindBeforeMinutes));
-  const save = async () => {
-    await update({
-      semesterStart,
-      totalWeeks: Number(totalWeeks) || 20,
-      remindBeforeMinutes: Number(remind) || 0,
-    });
+  const reschedule = async () => {
     await scheduleClassReminders(
       useCoursesStore.getState().courses,
       useSettingsStore.getState().settings,
     );
-    Alert.alert('已保存');
+  };
+
+  const saveSemester = async () => {
+    await update({
+      semesterStart,
+      totalWeeks: Number(totalWeeks) || 20,
+    });
+    await reschedule();
+  };
+
+  const saveRemind = async () => {
+    const next = Number(remind) || 0;
+    if (next === settings.remindBeforeMinutes) return;
+    await update({ remindBeforeMinutes: next });
+    await reschedule();
   };
 
   const requestPermission = async () => {
+    if (!notificationsSupported()) {
+      Alert.alert('当前环境不支持通知', 'Android 的 Expo Go 已移除通知功能，请用 development build（或 iOS Expo Go）测试。');
+      return;
+    }
     const granted = await requestNotificationPermission();
     Alert.alert(granted ? '通知权限已授权' : '通知权限被拒绝');
   };
 
   const toggleNotifications = async (enabled: boolean) => {
     await update({ notificationsEnabled: enabled });
-    await scheduleClassReminders(
-      useCoursesStore.getState().courses,
-      useSettingsStore.getState().settings,
-    );
+    await reschedule();
   };
 
   return (
@@ -76,6 +86,9 @@ export default function SettingsScreen() {
                 keyboardType="number-pad"
               />
             </Field>
+            <Pressable onPress={saveSemester} style={styles.sectionSave}>
+              <ThemedText type="small" style={styles.sectionSaveText}>保存学期设置</ThemedText>
+            </Pressable>
           </Section>
 
           <Section title="上课时间表">
@@ -93,7 +106,9 @@ export default function SettingsScreen() {
                 style={[styles.input, { color: theme.text }]}
                 value={remind}
                 onChangeText={setRemind}
+                onEndEditing={saveRemind}
                 keyboardType="number-pad"
+                returnKeyType="done"
               />
             </Field>
             <View style={styles.notifRow}>
@@ -129,9 +144,6 @@ export default function SettingsScreen() {
             </View>
           </Section>
 
-          <Pressable onPress={save} style={styles.save}>
-            <ThemedText style={styles.saveText}>保存设置</ThemedText>
-          </Pressable>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -221,13 +233,15 @@ const styles = StyleSheet.create({
     borderColor: '#3c87f7',
     backgroundColor: '#3c87f7',
   },
-  save: {
+  sectionSave: {
     backgroundColor: '#3c87f7',
     borderRadius: 8,
     alignItems: 'center',
-    paddingVertical: Spacing.three,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.four,
+    alignSelf: 'flex-start',
   },
-  saveText: {
+  sectionSaveText: {
     color: '#ffffff',
     fontWeight: '700',
   },

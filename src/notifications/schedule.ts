@@ -32,7 +32,12 @@ function loadNotifications(): NotificationsModule | null {
   }
 }
 
-/** 请求通知权限，返回是否已授权（Expo Go Android 下不可用，返回 false）。 */
+/** 当前运行环境是否支持本地通知（Android 的 Expo Go 已移除 expo-notifications）。 */
+export function notificationsSupported(): boolean {
+  return loadNotifications() !== null;
+}
+
+/** 请求通知权限，返回是否已授权（环境不支持时返回 false）。 */
 export async function requestNotificationPermission(): Promise<boolean> {
   const Notifications = loadNotifications();
   if (!Notifications) return false;

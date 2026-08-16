@@ -29,7 +29,7 @@
   - 用户输入教务系统账号、密码（记住时存 Keychain/Keystore）。
   - 模拟登录（`csrftoken` + RSA 公钥加密密码 POST `login_slogin.html`）；验证码可选（可展示图片回填）。
   - 抓取当前学期课表接口（POST `xskbcx_cxXsgrkb.html`），解析为 `Course[]`。
-- **实现**：`src/services/edu/`（`rsa.ts` RSA 加密、`client.ts` 登录/会话/抓取、`parser.ts` JSON 解析），登录页 `src/app/login.tsx`。
+- **实现**：`src/services/edu/`（`rsa.ts` RSA 加密、`client.ts` 登录/会话/抓取、`parser.ts` JSON 解析，地点字段剥离「星期x/周x」冗余文本），登录页 `src/app/login.tsx`。
 - **待真机验证**：会话 Cookie 抽取、验证码是否开启、接口字段名与学期代码（`client.ts` 顶部常量可调）。
 
 #### 2. 课表数据解析与存储模块 — ✅ 已实现
@@ -43,7 +43,7 @@
 - **功能**：
   - 周视图（默认）：7 列网格，显示每天课程卡片。
   - 日视图：点击某天查看详细课程列表。
-  - 周次切换：显示当前周，可左右滑动切换。
+  - 周次切换：显示当前周，可左右滑动切换；滑动跟手（拖动过程即看到相邻周，类似手机桌面分页），每次打开 App 自动同步到现实日期对应的周。
   - 课程卡片：显示课程名、地点、教师、节次时间。
 - **分工**：前端开发，使用 FlatList / Grid 布局。
 
@@ -63,16 +63,17 @@
 
 #### 6. 提醒通知模块（可选）— ✅ 已实现
 - **功能**：
+  - 通知总开关：设置页可一键开启/关闭提醒（关闭后不调度任何提醒）。
   - 设置上课前提醒（如 10 分钟）。
   - 本地通知调度（按开学日 + 周次 + 节次 + 提前分钟计算触发时间）。
   - 课程增删改 / 启动时自动重排，iOS 64 条、Android 500 条待通知上限内截断。
 - **分工**：1 人负责通知权限与调度。
 
-#### 7. 设置与个性化模块 — ✅ 已实现（节次自定义待实现）
+#### 7. 设置与个性化模块 — ✅ 已实现
 - **功能**：
   - 学期设置（开学日期、总周数）。
-  - 上课时间表（节次对应时间）。
-  - 主题切换（深色/浅色/跟随系统）。
+  - 上课时间表（节次对应时间）：独立页面 `/periods` 用时间选择器编辑各节起止时间，支持「重置为默认」。
+  - 主题切换（深色/浅色/跟随系统）；深色模式下切换页面无白屏闪烁（已通过 expo-system-ui 修正原生根视图背景色）。
 - **分工**：前端开发 + 本地存储。
 
 #### 8. UI/UX 设计 — ✅ 基础已实现
@@ -165,7 +166,7 @@ npx expo start       # 启动开发服务器
 
 ### 目录结构
 - `metro.config.js`：Metro 配置（Web 端 wasm 支持 + COOP/COEP 头）
-- `src/app/`：路由（`(tabs)` 为课表/课程/设置三个底部页；`day`、`course/[id]`、`import`、`login` 为堆栈页）
+- `src/app/`：路由（`(tabs)` 为课表/课程/设置三个底部页；`day`、`course/[id]`、`import`、`login`、`periods` 为堆栈页）
 - `src/models/`：数据模型（Course、AppSettings）
 - `src/db/`：SQLite 建表与 CRUD（`expo-sqlite` 异步 API）
 - `src/store/`：Zustand 状态（courses、settings）
@@ -179,5 +180,4 @@ npx expo start       # 启动开发服务器
 ### 待实现（占位）
 - 教务系统抓取：已按正方教务实现，待校内真机验证（验证码 / Cookie / 字段名，见 `src/services/edu/client.ts` 顶部注释）
 - `src/services/import/excel.ts`：Excel 列名字段映射（已支持中英文表头别名，目标学校表头不同时补 `HEADER_ALIASES` 即可）
-- 设置页「节次时间」自定义编辑
 - 测试：Jest/Detox 尚未接入，可按需补充 `jest-expo`
