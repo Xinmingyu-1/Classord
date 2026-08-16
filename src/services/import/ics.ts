@@ -24,7 +24,7 @@ function toMinutes(hhmm: string): number {
  * 优先精确匹配节次的 start/end 时间；对不上时按「事件时间落在某节次区间内」判定；
  * 仍无匹配（如落在课间、或超出全天节次）则取时间最接近的节次。避免旧实现「一律兜底到第 1 节」的静默错配。
  */
-function matchPeriod(periods: AppSettings['periods'], time: Date, key: 'start' | 'end'): number {
+export function matchPeriod(periods: AppSettings['periods'], time: Date, key: 'start' | 'end'): number {
   const hhmm = toHHMM(time);
   const t = toMinutes(hhmm);
 

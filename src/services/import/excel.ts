@@ -162,7 +162,7 @@ export function parseExcel(data: ArrayBuffer | Uint8Array, totalWeeks: number): 
  * - 空值（缺列）：默认整学期 totalWeeks；
  * - 有值但解析不出任何周次：返回空数组，由调用方跳过该行。
  */
-function parseWeeks(value: string | number[] | undefined, totalWeeks: number): number[] {
+export function parseWeeks(value: string | number[] | undefined, totalWeeks: number): number[] {
   if (Array.isArray(value)) {
     const weeks = value.map(Number).filter((n) => Number.isInteger(n) && n > 0);
     return weeks.length > 0 ? weeks : Array.from({ length: totalWeeks }, (_, i) => i + 1);
