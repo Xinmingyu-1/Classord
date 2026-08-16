@@ -80,9 +80,10 @@
 - **功能**：界面设计、图标、交互原型。
 - **工具**：Figma / Adobe XD。
 
-#### 9. 测试与发布 — ⏳ 待接入
+#### 9. 测试与发布 — 🟡 部分接入
 - **功能**：单元测试、集成测试、打包发布。
 - **技术**：Jest、Detox、EAS Build。
+- **进度**：Jest 单元测试已接入（`npm test`，4 个套件 33 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算、ICS 节次匹配、Excel 周次解析、通知触发时间计算；Detox 集成测试与 EAS Build 打包发布尚未接入。
 
 ### 四、数据获取方案（已确定）
 
@@ -160,6 +161,7 @@ npx expo start       # 启动开发服务器
 ### 常用脚本
 - `npm run start` / `npm run android` / `npm run ios` / `npm run web`
 - `npx tsc --noEmit`：类型检查
+- `npm test`：Jest 单元测试
 - `npm run lint`：ESLint
 
 > Web 端（`npm run web`）可运行，但 `expo-sqlite` 的 Web 后端（wa-sqlite/OPFS）仍不够稳定，建议以 Expo Go 原生端为开发主力。`metro.config.js` 已配置 wasm 资源与 COOP/COEP 跨源隔离头。
@@ -180,4 +182,4 @@ npx expo start       # 启动开发服务器
 ### 待实现（占位）
 - 教务系统抓取：已按正方教务实现，待校内真机验证（验证码 / Cookie / 字段名，见 `src/services/edu/client.ts` 顶部注释）
 - `src/services/import/excel.ts`：Excel 列名字段映射（已支持中英文表头别名，目标学校表头不同时补 `HEADER_ALIASES` 即可）
-- 测试：Jest/Detox 尚未接入，可按需补充 `jest-expo`
+- 测试：Jest 单元测试已接入（`jest.config.js` + `jest-expo`，用例见 `src/**/__tests__/`），Detox 集成测试尚未接入
