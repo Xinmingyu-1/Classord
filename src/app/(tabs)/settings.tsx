@@ -10,6 +10,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { notificationsSupported, requestNotificationPermission, scheduleClassReminders } from '@/notifications/schedule';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
+import { isValidIsoDate } from '@/utils/date';
 import type { ThemeMode } from '@/models/course';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
@@ -36,9 +37,18 @@ export default function SettingsScreen() {
   };
 
   const saveSemester = async () => {
+    if (!isValidIsoDate(semesterStart)) {
+      Alert.alert('开学日期无效', '请按 YYYY-MM-DD 格式填写，如 2026-09-01。');
+      return;
+    }
+    const weeks = Number(totalWeeks);
+    if (!Number.isInteger(weeks) || weeks < 1) {
+      Alert.alert('总周数无效', '总周数应为正整数，如 20。');
+      return;
+    }
     await update({
       semesterStart,
-      totalWeeks: Number(totalWeeks) || 20,
+      totalWeeks: weeks,
     });
     await reschedule();
   };

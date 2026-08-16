@@ -54,6 +54,15 @@ export function formatWeeks(weeks: number[]): string {
   return parts.join(',');
 }
 
+/** 校验 "YYYY-MM-DD" 格式且为真实存在的日期（拒绝 2026-13-01、2026-02-30、2026/09/01 等）。 */
+export function isValidIsoDate(iso: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const [year, month, day] = iso.split('-').map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const d = new Date(year, month - 1, day);
+  return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
+}
+
 /** 学期第 week 周、星期 dayOfWeek（1=周一 … 7=周日）对应的本地日期（第 1 周以开学日所在周计）。 */
 export function courseDate(semesterStartISO: string, week: number, dayOfWeek: number): Date {
   const [year, month, day] = semesterStartISO.split('-').map(Number);

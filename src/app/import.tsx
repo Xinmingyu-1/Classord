@@ -76,6 +76,19 @@ export default function ImportExportScreen() {
     }
   };
 
+  // coursesToIcs 可能抛错（如 createEvents 因非法日期返回 error），须在调用前先求值并捕获，
+  // 不能作为 exportFile 的实参在 onPress 里先求值——那会落在 exportFile 的 try/catch 之外。
+  const exportIcs = () => {
+    let content: string;
+    try {
+      content = coursesToIcs(courses, settings);
+    } catch (e) {
+      Alert.alert('导出失败', e instanceof Error ? e.message : String(e));
+      return;
+    }
+    void exportFile('classord-schedule.ics', content);
+  };
+
   return (
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -90,7 +103,7 @@ export default function ImportExportScreen() {
         <ThemedText type="subtitle" style={styles.section}>
           导出
         </ThemedText>
-        <Pressable onPress={() => exportFile('classord-schedule.ics', coursesToIcs(courses, settings))} style={styles.button}>
+        <Pressable onPress={exportIcs} style={styles.button}>
           <ThemedText>导出为 ICS</ThemedText>
         </Pressable>
         <Pressable onPress={() => exportFile('classord-schedule.json', coursesToJson(courses))} style={styles.button}>

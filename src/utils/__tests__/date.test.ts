@@ -5,6 +5,7 @@ import {
   dayOfWeekOf,
   formatWeeks,
   isCourseInWeek,
+  isValidIsoDate,
   parseWeeksText,
   weekOfDate,
 } from '@/utils/date';
@@ -23,6 +24,24 @@ describe('dayOfWeekOf', () => {
     expect(dayOfWeekOf(new Date(1970, 0, 1))).toBe(4); // 1970-01-01 周四
     expect(dayOfWeekOf(new Date(1970, 0, 4))).toBe(7); // 周日
     expect(dayOfWeekOf(new Date(1970, 0, 5))).toBe(1); // 周一
+  });
+});
+
+describe('isValidIsoDate', () => {
+  test('合法日期通过', () => {
+    expect(isValidIsoDate('2026-09-01')).toBe(true);
+    expect(isValidIsoDate('2024-02-29')).toBe(true); // 闰年
+    expect(isValidIsoDate('2026-12-31')).toBe(true);
+  });
+
+  test('格式/真实日期非法被拒绝', () => {
+    expect(isValidIsoDate('2026/09/01')).toBe(false);
+    expect(isValidIsoDate('abc')).toBe(false);
+    expect(isValidIsoDate('')).toBe(false);
+    expect(isValidIsoDate('2026-13-01')).toBe(false); // 月越界
+    expect(isValidIsoDate('2026-02-30')).toBe(false); // 不存在的日期
+    expect(isValidIsoDate('2026-00-10')).toBe(false);
+    expect(isValidIsoDate('2026-9-1')).toBe(false); // 缺前导零
   });
 });
 

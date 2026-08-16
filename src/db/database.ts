@@ -30,7 +30,16 @@ interface CourseRow {
   color: string;
 }
 
-function rowToCourse(row: CourseRow): Course {
+/** 行 → Course；周次列损坏（JSON 解析失败或非正整数数组）时返回 null，由调用方跳过该行。 */
+function rowToCourse(row: CourseRow): Course | null {
+  let weeks: unknown;
+  try {
+    weeks = JSON.parse(row.weeks);
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(weeks)) return null;
+  const safeWeeks = weeks.filter((n): n is number => Number.isInteger(n) && n > 0);
   return {
     id: row.id,
     name: row.name,
@@ -39,7 +48,7 @@ function rowToCourse(row: CourseRow): Course {
     dayOfWeek: row.day_of_week,
     startPeriod: row.start_period,
     endPeriod: row.end_period,
-    weeks: JSON.parse(row.weeks) as number[],
+    weeks: safeWeeks,
     color: row.color,
   };
 }
@@ -49,7 +58,10 @@ export async function listCourses(): Promise<Course[]> {
   const rows = await database.getAllAsync<CourseRow>(
     'SELECT * FROM courses ORDER BY day_of_week, start_period',
   );
-  return rows.map(rowToCourse);
+  return rows.flatMap((row) => {
+    const course = rowToCourse(row);
+    return course ? [course] : [];
+  });
 }
 
 export async function getCourse(id: string): Promise<Course | null> {
@@ -100,14 +112,20 @@ export async function deleteCourse(id: string): Promise<void> {
 
 const SETTINGS_KEY = 'app_settings';
 
-/** 读取整份设置（未保存过时返回 null）。 */
+/** 读取整份设置（未保存过或行损坏时返回 null，由调用方回退默认值）。 */
 export async function loadSettings(): Promise<AppSettings | null> {
   const database = await getDatabase();
   const row = await database.getFirstAsync<{ value: string }>(
     'SELECT value FROM settings WHERE key = ?',
     SETTINGS_KEY,
   );
-  return row ? (JSON.parse(row.value) as AppSettings) : null;
+  if (!row) return null;
+  try {
+    const parsed: unknown = JSON.parse(row.value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as AppSettings) : null;
+  } catch {
+    return null;
+  }
 }
 
 /** 保存整份设置（覆盖写）。 */

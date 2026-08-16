@@ -83,7 +83,12 @@
 #### 9. 测试与发布 — 🟡 部分接入
 - **功能**：单元测试、集成测试、打包发布。
 - **技术**：Jest、Detox、EAS Build。
-- **进度**：Jest 单元测试已接入（`npm test`，4 个套件 33 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算、ICS 节次匹配、Excel 周次解析、通知触发时间计算；Detox 集成测试与 EAS Build 打包发布尚未接入。
+- **进度**：
+  - ✅ Jest 单元测试已接入（`npm test`，4 个套件 35 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算、ICS 节次匹配、Excel 周次解析、通知触发时间计算。
+  - ✅ GitHub Actions CI 已接入（`.github/workflows/ci.yml`，push/PR 到 `main`/`develop` 跑 lint → 类型检查 → 单测 → `expo export` 构建校验）。
+  - ✅ EAS 本地预备完成：`eas-cli` 已装、`app.json`/`eas.json` 校验通过（`android.package`/`ios.bundleIdentifier` 已补全）。
+  - ⏳ Detox 集成测试尚未接入（需 `expo prebuild` + 模拟器）。
+  - ⏳ EAS 实际打包 / 上架未做（需 Expo 账号登录与商店开发者账号）。
 
 ### 四、数据获取方案（已确定）
 
@@ -104,8 +109,9 @@
 
 由于采用文件导入方案、无自有后端，部署主要是移动应用发布：
 
-1. **前端构建**
+1. **前端构建 — 🟡 本地预备完成，待登录出包**
    - 使用 Expo EAS Build 生成 Android APK/AAB 和 iOS IPA。
+   - 已装 `eas-cli`、`eas.json` 三档 profile 就绪、`app.json` 的 `android.package`/`ios.bundleIdentifier` 已补全；实际 `eas build` 需 `eas login` 后执行。
    - 测试阶段可用 Expo Go 或 TestFlight。
 
 2. **云函数（可选，仅当后续实现「教务抓取」方案时才需要）**
@@ -116,12 +122,12 @@
 3. **数据库**
    - 仅本地 SQLite，无需云端数据库。
 
-4. **CI/CD**
-   - GitHub Actions：推送代码时运行 lint、测试、构建。
-   - 分支策略：`main` 稳定，`develop` 开发，功能分支 `feature/xxx`。
+4. **CI/CD — ✅ 已接入**
+   - GitHub Actions（`.github/workflows/ci.yml`）：push/PR 到 `main`/`develop` 时运行 lint、类型检查、单元测试、`expo export` 构建校验。
+   - 分支策略：`main` 稳定、`develop` 开发（均已建立），功能分支 `feature/xxx`。
 
-5. **发布渠道**
-   - Android：Google Play 或直接分发 APK。
+5. **发布渠道 — ⏳ 未发布**
+   - Android：Google Play 或直接分发 APK（需开发者账号）。
    - iOS：App Store（需开发者账号）或 TestFlight。
 
 ### 六、协作流程与任务分配示例
@@ -179,7 +185,11 @@ npx expo start       # 启动开发服务器
 - `src/utils/`：日期/周次换算（`date`）、ID 生成（`id`）
 - `src/theme/`、`src/constants/`：颜色标签、节次时间表
 
-### 待实现（占位）
-- 教务系统抓取：已按正方教务实现，待校内真机验证（验证码 / Cookie / 字段名，见 `src/services/edu/client.ts` 顶部注释）
-- `src/services/import/excel.ts`：Excel 列名字段映射（已支持中英文表头别名，目标学校表头不同时补 `HEADER_ALIASES` 即可）
-- 测试：Jest 单元测试已接入（`jest.config.js` + `jest-expo`，用例见 `src/**/__tests__/`），Detox 集成测试尚未接入
+### 待实现 / 本地无法完成的部分
+集中记录在 [UNFINISHED.md](./UNFINISHED.md)，含：
+
+- **教务系统自动抓取**：需校内真机验证（会话 Cookie / 验证码 / 接口字段与学期代码，`client.ts` 顶部常量可调）
+- **通知功能**：Android 端需 development build（Expo Go 已移除 `expo-notifications`）
+- **Detox 集成测试**：需 `expo prebuild` + 模拟器
+- **EAS 打包 / 上架**：需 Expo 账号与商店开发者账号
+- **已知边界问题**：ICS RRULE 展开上限、节次表无校验等

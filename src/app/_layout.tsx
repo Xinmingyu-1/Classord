@@ -18,14 +18,20 @@ export default function RootLayout() {
 
   useEffect(() => {
     (async () => {
-      await useCoursesStore.getState().load();
-      await useSettingsStore.getState().load();
-      configureNotificationHandler();
-      await scheduleClassReminders(
-        useCoursesStore.getState().courses,
-        useSettingsStore.getState().settings,
-      );
-      await SplashScreen.hideAsync();
+      try {
+        await useCoursesStore.getState().load();
+        await useSettingsStore.getState().load();
+        configureNotificationHandler();
+        await scheduleClassReminders(
+          useCoursesStore.getState().courses,
+          useSettingsStore.getState().settings,
+        );
+      } catch (e) {
+        // 初始化失败（如本地库损坏）也不阻塞启动：至少关掉启动屏，让用户进入界面而非永远卡住。
+        console.warn('[init] 初始化失败，已跳过：', e);
+      } finally {
+        await SplashScreen.hideAsync();
+      }
     })();
   }, []);
 

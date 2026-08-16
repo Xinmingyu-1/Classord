@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -32,14 +32,29 @@ export function CourseForm({
   const theme = useTheme();
 
   const submit = () => {
+    const start = Number(startPeriod);
+    const end = Number(endPeriod);
+    if (!Number.isInteger(start) || start < 1 || !Number.isInteger(end) || end < 1) {
+      Alert.alert('节次无效', '起始与结束节次都应为正整数，如 1、2。');
+      return;
+    }
+    if (end < start) {
+      Alert.alert('节次顺序错误', '结束节次不能早于起始节次。');
+      return;
+    }
+    const weeks = parseWeeksText(weeksText);
+    if (weeks.length === 0) {
+      Alert.alert('周次无效', '请按「1-16」或「1,3,5」的格式填写上课周次。');
+      return;
+    }
     onSubmit({
       name: name.trim() || '未命名课程',
       teacher: teacher.trim(),
       location: location.trim(),
       dayOfWeek,
-      startPeriod: Number(startPeriod) || 1,
-      endPeriod: Number(endPeriod) || Number(startPeriod) || 1,
-      weeks: parseWeeksText(weeksText),
+      startPeriod: start,
+      endPeriod: end,
+      weeks,
       color,
     });
   };
