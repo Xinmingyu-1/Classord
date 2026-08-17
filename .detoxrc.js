@@ -14,8 +14,10 @@ module.exports = {
       type: 'android.apk',
       binaryPath: 'android/app/build/outputs/apk/debug/app-debug.apk',
       build:
-        'cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug',
+        'android\\gradlew.bat -p android assembleDebug assembleAndroidTest -DtestBuildType=debug -PreactNativeArchitectures=x86_64',
       reversePorts: [8081],
+      // New Architecture(Fabric)下 Detox 的同步机制会死锁/断连，测试时禁用它
+      launchArgs: { detoxEnableSynchronization: 0 },
     },
   },
   devices: {
