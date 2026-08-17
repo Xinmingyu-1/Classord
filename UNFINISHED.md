@@ -1,23 +1,19 @@
 # Unfinished（本地无法完成 / 待外部环境验证）
 
 > 本文件汇总项目中「无法在本地开发环境完成或验证」的部分，按类别整理。
-> 状态说明：🔴 需外部环境（真机 / 账号 / 模拟器）才能完成或验证。
+> 状态说明：🔴 需外部环境（真机 / 账号 / 模拟器）才能完成或验证；✅ 已真机验证。
 
-## 一、教务系统自动抓取（🔴 需校内真机）
+## 一、教务系统自动抓取（✅ 已真机验证）
 
-目标：河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`）。代码已按常见正方版本实现（`src/services/edu/`），但整条链路依赖校内网络与真实账号，本地无法验证。
+目标：河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`）。已真机验证通过：登录（账号密码 + RSA 加密）→ 拉取课表 → 正常显示均可用。
 
-| 项 | 位置 | 说明 |
-|----|------|------|
-| 会话 Cookie 抽取 | `src/services/edu/client.ts` | RN 的 `fetch` 不暴露 `Set-Cookie` 响应头、默认不持久化 Cookie，改用 `credentials: 'include'` 依赖原生 Cookie 存储自动回带 JSESSIONID；跨请求能否保持同一会话需真机确认 |
-| 验证码流程 | `src/app/login.tsx`、`client.ts` | 已实现「预拉验证码 + 两段式重试」；但 `prepare()` 预拉后 `login()` 内部又重拉登录页，若重拉刷新了会话/验证码，会陷入「验证码错误」循环，需真机确认（代码审查 #5） |
-| 接口字段名与学期代码 | `client.ts` 顶部常量 | `xnm`/`xqm`（`3`=第一学期、`12`=第二学期）、课表接口路径按常见正方版本填写，若实际接口不同改常量即可 |
-| RSA 密码加密 | `src/services/edu/rsa.ts` | 已用原生 BigInt 实现，本地可测；是否匹配目标学校公钥格式需真机 |
+- 会话 Cookie（`credentials: 'include'` 回带 JSESSIONID）、RSA 公钥、接口字段名与学期代码（`xnm`/`xqm`）均已对上，无需再改。
+- 遗留留意点（代码审查 #5）：若学校后续开启验证码，`prepare()` 预拉 + `login()` 再重拉登录页是否会陷入「验证码错误」循环，建议在开启验证码的环境再验证一次。
 
-## 二、通知功能（🔴 Android 需 development build）
+## 二、通知功能（✅ 已真机验证）
 
 - **位置**：`src/notifications/schedule.ts`、设置页「提醒通知」
-- **说明**：`expo-notifications` 在 **Android 的 Expo Go 已被移除（SDK 53 起）**，Android 端需 development build（`npx expo run:android`）才能测；iOS Expo Go 不受影响。本地（Windows + Expo Go）无法验证 Android 通知。
+- **说明**：已在 Android development build 上真机验证通过（补建通知渠道 + 用 `appOwnership` 精确识别 Expo Go 后，通知可正常弹出）。注：Android 的 Expo Go 已移除 expo-notifications（SDK 53 起），通知需 development build 测，iOS Expo Go 不受影响。
 
 ## 三、集成测试（🟡 已搭建，被 Detox + 新架构兼容性阻塞）
 

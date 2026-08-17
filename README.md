@@ -24,13 +24,13 @@
 
 ### 三、功能模块与分工建议
 
-#### 1. 教务系统对接模块（核心）— ✅ 已实现（待真机验证）
+#### 1. 教务系统对接模块（核心）— ✅ 已实现并真机验证
 - **功能**：
   - 用户输入教务系统账号、密码（记住时存 Keychain/Keystore）。
   - 模拟登录（`csrftoken` + RSA 公钥加密密码 POST `login_slogin.html`）；验证码可选（可展示图片回填）。
   - 抓取当前学期课表接口（POST `xskbcx_cxXsgrkb.html`），解析为 `Course[]`。
 - **实现**：`src/services/edu/`（`rsa.ts` RSA 加密、`client.ts` 登录/会话/抓取、`parser.ts` JSON 解析，地点字段剥离「星期x/周x」冗余文本），登录页 `src/app/login.tsx`。
-- **待真机验证**：会话 Cookie 抽取、验证码是否开启、接口字段名与学期代码（`client.ts` 顶部常量可调）。
+- **已验证**：真机登录 → 拉取课表 → 显示均正常；会话 Cookie、接口字段名与学期代码（`client.ts` 顶部常量）均已对上。若学校开启验证码，建议在开启验证码的环境再验证一次验证码流程。
 
 #### 2. 课表数据解析与存储模块 — ✅ 已实现
 - **功能**：
@@ -87,23 +87,23 @@
   - ✅ Jest 单元测试已接入（`npm test`，4 个套件 39 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算（含周次钳制）、ICS 节次匹配与 RRULE 展开、Excel 周次解析、通知触发时间计算。
   - ✅ GitHub Actions CI 已接入（`.github/workflows/ci.yml`，push/PR 到 `main`/`develop` 跑 lint → 类型检查 → 单测 → `expo export` 构建校验）。
   - ✅ EAS 本地预备完成：`eas-cli` 已装、`app.json`/`eas.json` 校验通过（`android.package`/`ios.bundleIdentifier` 已补全）。
-  - ⏳ Detox 集成测试尚未接入（需 `expo prebuild` + 模拟器）。
+  - ⏳ Detox 已接入骨架（`e2e/`、`.detoxrc.js`），测试执行被 Detox + 新架构（Fabric）兼容性阻塞，详见 UNFINISHED.md。
   - ⏳ EAS 实际打包 / 上架未做（需 Expo 账号登录与商店开发者账号）。
 
 ### 四、数据获取方案（已确定）
 
-**结论：主路径采用「文件导入 + 手动添加」（已实现）；「教务系统自动抓取」作为可选增强（已按正方教务实现，待校内真机验证）。**
+**结论：主路径采用「文件导入 + 手动添加」（已实现）；「教务系统自动抓取」作为可选增强（已实现并真机验证）。**
 
 #### 主路径：文件导入 + 手动添加（已实现）
 - 用户从教务系统网页导出 Excel / ICS 文件，App 通过文件选择器导入并解析（`src/services/import/`）。
 - 也支持 App 内手动添加课程（`/course/new`）。
 - **优点**：无需处理登录、验证码、Cookie，开发量最小，当前即可用。
 
-#### 可选增强：教务系统自动抓取（已实现，待真机验证）
+#### 可选增强：教务系统自动抓取（已实现并真机验证）
 - 目标：河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`）。
 - 用户输入教务系统账号密码（存 `expo-secure-store`，仅本地），App 模拟登录（RSA 加密密码）并抓取课表 JSON 解析为课程。
 - 已实现：`src/services/edu/rsa.ts`（RSA）、`client.ts`（登录/会话/抓取）、`parser.ts`（JSON→Course），登录页 `src/app/login.tsx`。
-- 待真机验证：需在校内网络真机测试，核对 Cookie 抽取、验证码、接口字段与学期代码（`client.ts` 顶部常量可调）。
+- 已验证：真机登录 → 拉取课表 → 显示正常；Cookie 抽取、接口字段与学期代码均已核对。若学校开启验证码，建议再验证一次。
 
 ### 五、生产环境部署
 
