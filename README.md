@@ -1,194 +1,166 @@
-## 课程表 App 开发大纲
+# Classord · 面向河北师范大学的课程表 App
 
-### 一、项目概述
-开发一款手机端课程表应用，用户可通过以下任一方式获取课表：
-1. **自动抓取**：输入教务系统账号密码（仅本地临时使用，不上传），App 模拟登录并解析课表 HTML/API。
-2. **手动导入**：从教务系统导出 Excel/ICS 文件，App 解析后导入。或者手动添加课程。
 
-数据全部保存在本地，无用户系统、无跨设备同步，界面简洁，专注查看课表。
 
-### 二、技术栈（已确定）
+## 安装包下载
 
-| 层级 | 方案 | 说明 |
-|------|------|------|
-| 移动前端 | React Native (Expo SDK 57) | 跨平台，Expo Router 文件式路由 |
-| 本地数据库 | SQLite (expo-sqlite) | 异步 API（`openDatabaseAsync` 等），Web 端走 wa-sqlite |
-| 状态管理 | Zustand | 轻量，适合本地状态 |
-| HTTP 请求 | fetch（内置） | 用于教务系统请求，不额外引 axios |
-| 教务抓取 | fetch + RSA（原生 BigInt） | 正方教务接口返回 JSON 课表，无需 HTML 解析库 |
-| 文件解析 | xlsx + ical.js + ics | xlsx 解析 Excel；ical.js 解析 ICS；ics 生成 ICS |
-| 本地凭据 | expo-secure-store | 存教务账号密码（Keychain/Keystore） |
-| 文件选择/读写/分享 | expo-document-picker + expo-file-system + expo-sharing | 导入选文件、读写导出、系统分享 |
-| 本地通知 | Expo Notifications | 上课提醒（本地通知，已实现） |
-| 版本控制 | Git + GitHub | 协作开发 |
+所有版本请查看Release
 
-### 三、功能模块与分工建议
+最新版本:https://wwasn.lanzout.com/iklUP42xtxxa
+密码:8chm
 
-#### 1. 教务系统对接模块（核心）— ✅ 已实现并真机验证
-- **功能**：
-  - 用户输入教务系统账号、密码（记住时存 Keychain/Keystore）。
-  - 模拟登录（`csrftoken` + RSA 公钥加密密码 POST `login_slogin.html`）；验证码可选（可展示图片回填）。
-  - 抓取当前学期课表接口（POST `xskbcx_cxXsgrkb.html`），解析为 `Course[]`。
-- **实现**：`src/services/edu/`（`rsa.ts` RSA 加密、`client.ts` 登录/会话/抓取、`parser.ts` JSON 解析，地点字段剥离「星期x/周x」冗余文本），登录页 `src/app/login.tsx`。
-- **已验证**：真机登录 → 拉取课表 → 显示均正常；会话 Cookie、接口字段名与学期代码（`client.ts` 顶部常量）均已对上。若学校开启验证码，建议在开启验证码的环境再验证一次验证码流程。
+## 功能特性
 
-#### 2. 课表数据解析与存储模块 — ✅ 已实现
-- **功能**：
-  - 将抓取或导入的数据解析为课程模型（课程名、教师、地点、周次、节次、周几）。
-  - 存储到 SQLite 本地数据库。
-  - 提供数据增删改查 API（供界面调用）。
-- **分工**：1 人负责数据模型与数据库操作，1 人负责解析逻辑。
+- **三种方式录入课表**
+  1. **教务系统自动抓取**：输入教务账号密码，App 模拟登录（RSA 加密）并拉取课表 JSON。
+  2. **文件导入**：从教务系统导出的 Excel / ICS 文件，App 解析后入库。
+  3. **手动添加**：逐条录入或补录课程，可设颜色标签。
+- **课表展示**：周视图（默认，7 列网格 + 左右滑动切换周次）、日视图；启动时自动定位到当前周。
+- **课程管理**：增删改查、颜色标签、学期与节次时间表设置。
+- **上课提醒**：本地通知，支持总开关与提前 N 分钟提醒，按开学日 + 周次 + 节次换算触发时间。
+- **导入导出**：Excel / ICS 导入，ICS / JSON 导出备份。
+- **主题**：浅色 / 深色 / 跟随系统。
 
-#### 3. 课表展示模块 — ✅ 已实现
-- **功能**：
-  - 周视图（默认）：7 列网格，显示每天课程卡片。
-  - 日视图：点击某天查看详细课程列表。
-  - 周次切换：显示当前周，可左右滑动切换；滑动跟手（拖动过程即看到相邻周，类似手机桌面分页），每次打开 App 自动同步到现实日期对应的周。
-  - 课程卡片：显示课程名、地点、教师、节次时间。
-- **分工**：前端开发，使用 FlatList / Grid 布局。
+> **隐私说明**：教务账号密码仅通过 `expo-secure-store` 加密保存在本机（Keychain / Keystore），用于登录学校教务系统，**不上传到任何服务器**。抓取目标为河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`），仅用于用户本人课表。
 
-#### 4. 课程管理模块（本地编辑）— ✅ 已实现
-- **功能**：
-  - 手动添加、编辑、删除课程（用于补录或修正）。
-  - 设置课程颜色标签。
-- **分工**：前端表单 + 数据库操作。
+## 技术栈
 
-#### 5. 导入导出模块 — ✅ 已实现
-- **功能**：
-  - 从本地文件选择 Excel/ICS 导入。
-  - Excel：周次列解析已实现（支持 `1-16`、`1-16周(单)`、`双周` 等），列名字段映射已支持中英文表头别名（`HEADER_ALIASES`，目标学校表头不同时补别名即可）。
-  - ICS：解析 VEVENT（含 RRULE 周期事件展开），按开学日期 + 节次时间表反推周几/节次/周次并合并为课程。
-  - 导出课表为 ICS（按开学日期 + 周次 + 节次换算真实日期）或 JSON，便于备份分享。
-- **分工**：前端文件选择与解析，可结合第三方库。
+| 层级 | 方案 |
+|------|------|
+| 框架 | React Native + Expo SDK 57（TypeScript） |
+| 导航 | Expo Router（文件式路由，`src/app/`） |
+| 本地数据库 | SQLite（`expo-sqlite`） |
+| 状态管理 | Zustand |
+| HTTP | 内置 `fetch` |
+| 教务抓取 | fetch + RSA（原生 `BigInt`），接口返回 JSON，无需 HTML 解析 |
+| 文件解析 | `xlsx`（Excel）、`ical.js`（ICS 解析）、`ics`（ICS 生成） |
+| 本地凭据 | `expo-secure-store` |
+| 本地通知 | `expo-notifications` |
+| 测试 | Jest + GitHub Actions CI |
 
-#### 6. 提醒通知模块（可选）— ✅ 已实现
-- **功能**：
-  - 通知总开关：设置页可一键开启/关闭提醒（关闭后不调度任何提醒）。
-  - 设置上课前提醒（如 10 分钟）。
-  - 本地通知调度（按开学日 + 周次 + 节次 + 提前分钟计算触发时间）。
-  - 课程增删改 / 启动时自动重排，iOS 64 条、Android 500 条待通知上限内截断。
-- **分工**：1 人负责通知权限与调度。
+## 环境要求
 
-#### 7. 设置与个性化模块 — ✅ 已实现
-- **功能**：
-  - 学期设置（开学日期、总周数）。
-  - 上课时间表（节次对应时间）：独立页面 `/periods` 用时间选择器编辑各节起止时间，支持「重置为默认」。
-  - 主题切换（深色/浅色/跟随系统）；深色模式下切换页面无白屏闪烁（已通过 expo-system-ui 修正原生根视图背景色）。
-- **分工**：前端开发 + 本地存储。
+- **Node.js ≥ 20**（仓库锁定 `.nvmrc` 为 `24.16.0`；CI 使用 20）
+- 手机安装 [Expo Go](https://expo.dev/go)，或 Android / iOS 模拟器
 
-#### 8. UI/UX 设计 — ✅ 基础已实现
-- **功能**：界面设计、图标、交互原型。
-- **工具**：Figma / Adobe XD。
+## 快速开始（开发）
 
-#### 9. 测试与发布 — 🟡 部分接入
-- **功能**：单元测试、集成测试、打包发布。
-- **技术**：Jest、Detox、EAS Build。
-- **进度**：
-  - ✅ Jest 单元测试已接入（`npm test`，4 个套件 39 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算（含周次钳制）、ICS 节次匹配与 RRULE 展开、Excel 周次解析、通知触发时间计算。
-  - ✅ GitHub Actions CI 已接入（`.github/workflows/ci.yml`，push/PR 到 `main`/`develop` 跑 lint → 类型检查 → 单测 → `expo export` 构建校验）。
-  - ✅ EAS 本地预备完成：`eas-cli` 已装、`app.json`/`eas.json` 校验通过（`android.package`/`ios.bundleIdentifier` 已补全）。
-  - ⏳ Detox 集成测试未接入：曾尝试但被 Detox + 新架构（Fabric）兼容性阻塞，已移除骨架、改真机手动验证（详见 UNFINISHED.md）。
-  - ⏳ EAS 实际打包 / 上架未做（需 Expo 账号登录与商店开发者账号）。
-
-### 四、数据获取方案（已确定）
-
-**结论：主路径采用「文件导入 + 手动添加」（已实现）；「教务系统自动抓取」作为可选增强（已实现并真机验证）。**
-
-#### 主路径：文件导入 + 手动添加（已实现）
-- 用户从教务系统网页导出 Excel / ICS 文件，App 通过文件选择器导入并解析（`src/services/import/`）。
-- 也支持 App 内手动添加课程（`/course/new`）。
-- **优点**：无需处理登录、验证码、Cookie，开发量最小，当前即可用。
-
-#### 可选增强：教务系统自动抓取（已实现并真机验证）
-- 目标：河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`）。
-- 用户输入教务系统账号密码（存 `expo-secure-store`，仅本地），App 模拟登录（RSA 加密密码）并抓取课表 JSON 解析为课程。
-- 已实现：`src/services/edu/rsa.ts`（RSA）、`client.ts`（登录/会话/抓取）、`parser.ts`（JSON→Course），登录页 `src/app/login.tsx`。
-- 已验证：真机登录 → 拉取课表 → 显示正常；Cookie 抽取、接口字段与学期代码均已核对。若学校开启验证码，建议再验证一次。
-
-### 五、生产环境部署
-
-由于采用文件导入方案、无自有后端，部署主要是移动应用发布：
-
-1. **前端构建 — 🟡 本地预备完成，待登录出包**
-   - 使用 Expo EAS Build 生成 Android APK/AAB 和 iOS IPA。
-   - 已装 `eas-cli`、`eas.json` 三档 profile 就绪、`app.json` 的 `android.package`/`ios.bundleIdentifier` 已补全；实际 `eas build` 需 `eas login` 后执行。
-   - 测试阶段可用 Expo Go 或 TestFlight。
-
-2. **云函数（可选，仅当后续实现「教务抓取」方案时才需要）**
-   - 部署到 Vercel / Cloudflare Workers / Railway。
-   - 环境变量：无敏感信息，但需配置教务系统目标 URL 和解析规则。
-   - 注意：云函数中处理账号密码需加密传输（HTTPS），且不存储日志。
-
-3. **数据库**
-   - 仅本地 SQLite，无需云端数据库。
-
-4. **CI/CD — ✅ 已接入**
-   - GitHub Actions（`.github/workflows/ci.yml`）：push/PR 到 `main`/`develop` 时运行 lint、类型检查、单元测试、`expo export` 构建校验。
-   - 分支策略：`main` 稳定、`develop` 开发（均已建立），功能分支 `feature/xxx`。
-
-5. **发布渠道 — ⏳ 未发布**
-   - Android：Google Play 或直接分发 APK（需开发者账号）。
-   - iOS：App Store（需开发者账号）或 TestFlight。
-
-### 六、协作流程与任务分配示例
-
-| 模块 | 负责人 | 优先级 |
-|------|--------|--------|
-| 项目初始化、导航、基础 UI | 成员 A | 高 |
-| 教务系统抓取/导入解析 | 成员 B | 高 |
-| 本地数据库设计与操作 | 成员 C | 高 |
-| 课表展示（周/日视图） | 成员 A + C | 高 |
-| 课程编辑与管理 | 成员 C | 中 |
-| 设置与个性化 | 成员 A | 中 |
-| 通知提醒 | 成员 B | 低 |
-| 测试与发布 | 全员 | 持续 |
-
----
-
-## 开发上手（项目已初始化）
-
-本仓库已按本大纲初始化为 **Expo SDK 57 + TypeScript + Expo Router** 项目骨架，八大模块均已建好目录与最小可运行代码（部分为占位，见各模块状态标注）。
-
-### 环境要求
-- Node.js ≥ 20
-- 手机安装 [Expo Go](https://expo.dev/go)，或使用 Android/iOS 模拟器
-
-### 启动（Expo Go）
 ```bash
 npm install          # 首次安装依赖
-npx expo start       # 启动开发服务器
+npx expo start       # 启动 Metro 开发服务器
 ```
-1. 手机和电脑连**同一 Wi-Fi**，终端会显示二维码；
-2. **iOS** 用系统相机扫码、**Android** 打开 Expo Go 扫二维码，即可在 Expo Go 里打开 App；
+
+1. 手机与电脑连**同一 Wi-Fi**，终端会显示二维码；
+2. **iOS** 用系统相机扫码；**Android** 打开 Expo Go 扫二维码，即可在 App 里打开；
 3. 连不上时改用隧道模式 `npx expo start --tunnel`，或检查 Windows 防火墙是否放行 8081 端口。
 
-> 核心能力（expo-sqlite / expo-secure-store 等）都已内置在 Expo Go，无需额外 development build。注意：`expo-notifications` 在 **Android 的 Expo Go** 已被移除（SDK 53 起），通知功能需 development build 才能测，iOS Expo Go 不受影响。
+> **注意**：`expo-notifications` 在 Android 的 Expo Go 里已被移除（SDK 53 起），**通知功能需 development build 才能测**；iOS Expo Go 不受影响。其余核心能力（`expo-sqlite` / `expo-secure-store` 等）都内置在 Expo Go。
 
-### 常用脚本
-- `npm run start` / `npm run android` / `npm run ios` / `npm run web`
-- `npx tsc --noEmit`：类型检查
-- `npm test`：Jest 单元测试
-- `npm run lint`：ESLint
+## 使用指南
 
-> Web 端（`npm run web`）可运行，但 `expo-sqlite` 的 Web 后端（wa-sqlite/OPFS）仍不够稳定，建议以 Expo Go 原生端为开发主力。`metro.config.js` 已配置 wasm 资源与 COOP/COEP 跨源隔离头。
+### 录入课表
+
+- **教务抓取**：首页「登录教务」→ 输入教务账号密码 → 自动登录并拉取当前学期课表（RSA 加密密码，验证码可选回填）。
+- **文件导入**：「导入导出」页 → 选择 Excel / ICS 文件 → 解析入库。
+  - Excel 支持 `1-16`、`1-16周(单)`、`双周` 等周次写法，表头支持中英文别名。
+  - ICS 支持含 RRULE 的周期事件展开，按开学日期 + 节次时间表反推周几 / 节次 / 周次。
+- **手动添加**：「课程」页 → 新增课程。
+
+### 设置
+
+- **学期**：开学日期、总周数（用于周次与通知换算）。
+- **节次时间表**：`/periods` 页编辑各节起止时间，支持「重置为默认」。
+- **提醒**：设置页一键开关通知，可调提前分钟数。
+
+## 构建与发布
 
 ### 目录结构
-- `metro.config.js`：Metro 配置（Web 端 wasm 支持 + COOP/COEP 头）
-- `src/app/`：路由（`(tabs)` 为课表/课程/设置三个底部页；`day`、`course/[id]`、`import`、`login`、`periods` 为堆栈页）
-- `src/models/`：数据模型（Course、AppSettings）
-- `src/db/`：SQLite 建表与 CRUD（`expo-sqlite` 异步 API）
-- `src/store/`：Zustand 状态（courses、settings）
-- `src/services/`：教务抓取、Excel/ICS 导入、ICS/JSON 导出
-- `src/components/`：课程卡片、周/日视图网格、课程表单
-- `src/notifications/`：上课提醒（权限、提醒计算与调度）
-- `src/hooks/`：主题解析（`use-theme`、`use-color-scheme`）
-- `src/utils/`：日期/周次换算（`date`）、ID 生成（`id`）
-- `src/theme/`、`src/constants/`：颜色标签、节次时间表
 
-### 待实现 / 本地无法完成的部分
-集中记录在 [UNFINISHED.md](./UNFINISHED.md)，含：
+```
+src/
+├── app/             # 路由（(tabs) 课表/课程/设置；day、course/[id]、import、login、periods）
+├── components/      # 课程卡片、周/日视图网格、课程表单
+├── constants/       # 颜色标签、节次时间表
+├── db/              # SQLite 建表与 CRUD
+├── hooks/           # 主题解析（use-theme、use-color-scheme）
+├── models/          # 数据模型（Course、AppSettings）
+├── notifications/   # 上课提醒（权限、时间计算、调度）
+├── services/
+│   ├── edu/         # 教务抓取（rsa.ts / client.ts / parser.ts）
+│   ├── import/      # Excel / ICS 导入
+│   └── export/      # ICS / JSON 导出
+├── store/           # Zustand 状态（courses、settings）
+├── theme/           # 主题与调色板
+└── utils/           # 日期/周次换算、ID 生成
+```
 
-- **教务系统自动抓取**：需校内真机验证（会话 Cookie / 验证码 / 接口字段与学期代码，`client.ts` 顶部常量可调）
-- **通知功能**：Android 端需 development build（Expo Go 已移除 `expo-notifications`）
-- **Detox 集成测试**：需 `expo prebuild` + 模拟器
-- **EAS 打包 / 上架**：需 Expo 账号与商店开发者账号
+### 本地 development build
+
+需要通知等原生能力、或要脱离 Expo Go 调试时：
+
+```bash
+npx expo run:android      # 本地编译并安装到设备/模拟器
+npx expo run:ios          # iOS（需 macOS + Xcode）
+```
+
+### EAS 云打包
+
+本项目通过 [EAS Build](https://docs.expo.dev/build/introduction/) 云端打包，`eas.json` 提供三档 profile：
+
+| profile | 产物 | 用途 |
+|---------|------|------|
+| `development` | development client | 内部分发、配合 dev 调试 |
+| `preview` | **APK**（`buildType: apk`） | 直接安装到 Android 真机试用 |
+| `production` | AAB / IPA（`autoIncrement`） | 商店上架 |
+
+打包 APK（最常用）：
+
+```bash
+npx eas-cli login                     # 首次需登录 Expo 账号
+npx eas-cli build --profile preview --platform android
+```
+
+构建完成后，终端会输出下载链接（`.apk`），或通过 `npx eas-cli build:list` 查看历史产物。
+
+### 打包相关配置（`app.json`）
+
+- **图标**：`assets/images/icon.png` 及 Android 自适应图标，由 `node scripts/generate-icon.mjs` 生成（黑底白「C」）。
+- **CPU 架构**：`expo-build-properties` 的 `android.buildArchs` 限定为 `["arm64-v8a", "armeabi-v7a"]`，将 APK 从约 110 MB 降到 **约 62 MB**。
+- **明文 HTTP**：`android.usesCleartextTraffic: true`，允许访问学校 HTTP 教务系统（Android 9+ 默认禁止明文流量）。
+- **包名 / 标识**：`android.package` 与 `ios.bundleIdentifier` 均为 `com.xinmingyu.classord`。
+
+### npm 版本注意
+
+本地（Node 24 + npm 11）与 EAS 云端（Node 22 + npm 10）的 lockfile 格式不兼容，直接用 npm 11 生成的 `package-lock.json` 会导致 EAS 构建报 `Missing: typescript@5.9.3 from lock file`。**每次本地 `npm install` 后，用 npm 10 重新同步一次：**
+
+```bash
+npx npm@10.9.8 install
+```
+
+## 开发
+
+### 常用脚本
+
+| 命令 | 说明 |
+|------|------|
+| `npm run start` | 启动 Metro 开发服务器 |
+| `npm run android` / `npm run ios` | 本地编译运行（原生端） |
+| `npm run web` | Web 端（`expo-sqlite` 的 Web 后端 wa-sqlite 仍不够稳定，建议以原生端为主） |
+| `npm run lint` | ESLint |
+| `npm test` | Jest 单元测试（4 套件 39 用例） |
+| `npx tsc --noEmit` | TypeScript 类型检查 |
+
+### 测试与 CI
+
+- **单元测试**：覆盖日期/周次换算（含周次钳制）、ICS 节次匹配与 RRULE 展开、Excel 周次解析、通知触发时间计算，见 `src/**/__tests__/`。
+- **CI**：`.github/workflows/ci.yml` 在 push/PR 到 `main` / `develop` 时依次执行 lint → 类型检查 → 单测 → `expo export` 构建校验。
+
+## 已知限制
+
+- **集成测试**：曾尝试 Detox，但被 Detox 与新架构（Fabric，`react-native-reanimated@4.x` 依赖）的兼容性阻塞，已移除骨架，改真机手动验证（详见 [UNFINISHED.md](UNFINISHED.md)）。
+- **教务抓取验证码**：目标学校目前未开启验证码；若后续开启，建议在开启验证码的环境再验证一次流程。
+- **Web 端**：可运行，但 SQLite 的 Web 后端仍不够稳定，不作为主开发目标。
+
+## 许可证
+
+[MIT](LICENSE)
