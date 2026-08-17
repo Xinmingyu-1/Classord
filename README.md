@@ -87,7 +87,7 @@
   - ✅ Jest 单元测试已接入（`npm test`，4 个套件 39 个用例，见 `src/**/__tests__/`），覆盖日期/周次换算（含周次钳制）、ICS 节次匹配与 RRULE 展开、Excel 周次解析、通知触发时间计算。
   - ✅ GitHub Actions CI 已接入（`.github/workflows/ci.yml`，push/PR 到 `main`/`develop` 跑 lint → 类型检查 → 单测 → `expo export` 构建校验）。
   - ✅ EAS 本地预备完成：`eas-cli` 已装、`app.json`/`eas.json` 校验通过（`android.package`/`ios.bundleIdentifier` 已补全）。
-  - ⏳ Detox 已接入骨架（`e2e/`、`.detoxrc.js`），测试执行被 Detox + 新架构（Fabric）兼容性阻塞，详见 UNFINISHED.md。
+  - ⏳ Detox 集成测试未接入：曾尝试但被 Detox + 新架构（Fabric）兼容性阻塞，已移除骨架、改真机手动验证（详见 UNFINISHED.md）。
   - ⏳ EAS 实际打包 / 上架未做（需 Expo 账号登录与商店开发者账号）。
 
 ### 四、数据获取方案（已确定）
