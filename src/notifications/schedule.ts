@@ -6,6 +6,9 @@ import { courseStartDate, dayLabel } from '@/utils/date';
 
 type NotificationsModule = typeof import('expo-notifications');
 
+/** Android 通知渠道 ID，所有上课提醒共用同一个渠道。 */
+const ANDROID_CHANNEL_ID = 'class-reminders';
+
 /**
  * 加载 expo-notifications。
  *
@@ -64,6 +67,25 @@ export function configureNotificationHandler(): void {
     });
   } catch (e) {
     console.warn('[notifications] 配置前台通知 handler 失败，已跳过：', e);
+  }
+}
+
+/**
+ * 在 Android 上创建上课提醒所用的通知渠道。
+ *
+ * Android 8.0（API 26）起，通知必须挂在某个 channel 上才会显示，expo-notifications
+ * 不会自动创建渠道。这里用 setNotificationChannelAsync 建一个 HIGH 重要级的渠道；
+ * 重复调用是幂等的（已存在的渠道会被更新）。
+ */
+async function ensureAndroidChannel(Notifications: NotificationsModule): Promise<void> {
+  if (Platform.OS !== 'android') return;
+  try {
+    await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+      name: '上课提醒',
+      importance: Notifications.AndroidImportance.HIGH,
+    });
+  } catch (e) {
+    console.warn('[notifications] 创建 Android 通知渠道失败，已跳过：', e);
   }
 }
 
@@ -132,6 +154,7 @@ export async function scheduleClassReminders(
   const reminders = computeReminders(courses, settings);
 
   try {
+    await ensureAndroidChannel(Notifications);
     await Notifications.cancelAllScheduledNotificationsAsync();
 
     if (reminders.length > maxPending) {
@@ -144,7 +167,11 @@ export async function scheduleClassReminders(
       await Notifications.scheduleNotificationAsync({
         identifier: reminder.identifier,
         content: { title: reminder.title, body: reminder.body },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminder.date },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: reminder.date,
+          ...(Platform.OS === 'android' ? { channelId: ANDROID_CHANNEL_ID } : {}),
+        },
       });
     }
   } catch (e) {
