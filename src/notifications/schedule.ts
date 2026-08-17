@@ -1,4 +1,4 @@
-import Constants, { ExecutionEnvironment } from 'expo-constants';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import type { AppSettings, Course } from '@/models/course';
@@ -18,11 +18,12 @@ const ANDROID_CHANNEL_ID = 'class-reminders';
  *
  * 另外：Android 的 Expo Go 已移除 expo-notifications（SDK 53 起），require 会在模块副作用
  * （DevicePushTokenAutoRegistration.fx → addPushTokenListener → warnOfExpoGoPushUsage）里直接抛错，
- * 连 try/catch 都会在 LogBox 报一次错误。这里按运行环境提前跳过，避免无意义的报错日志；
- * 通知功能需 development build 才能测。
+ * 连 try/catch 都会在 LogBox 报一次错误。这里用 appOwnership === 'expo' 精确识别 Expo Go 后
+ * 提前跳过，避免无意义报错；development build / standalone 的 appOwnership 不是 'expo'，
+ * expo-notifications 正常可用，通知功能需在 development build 里测。
  */
 function loadNotifications(): NotificationsModule | null {
-  if (Platform.OS === 'android' && Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+  if (Platform.OS === 'android' && Constants.appOwnership === 'expo') {
     return null;
   }
   try {
