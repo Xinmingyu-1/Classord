@@ -12,12 +12,18 @@ import { notificationsSupported, requestNotificationPermission, scheduleClassRem
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
 import { isValidIsoDate } from '@/utils/date';
-import type { ThemeMode } from '@/models/course';
+import type { AppearanceStyle, ThemeMode } from '@/models/course';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: '跟随系统' },
   { value: 'light', label: '浅色' },
   { value: 'dark', label: '深色' },
+];
+
+const STYLE_OPTIONS: { value: AppearanceStyle; label: string }[] = [
+  { value: 'glass', label: '玻璃' },
+  { value: 'minimal', label: '极简' },
+  { value: 'accessible', label: '无障碍' },
 ];
 
 /** 设置与个性化（README「设置与个性化模块」）。 */
@@ -88,7 +94,7 @@ export default function SettingsScreen() {
           <Section title="学期设置">
             <Field label="开学日期（YYYY-MM-DD）">
               <TextInput
-                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
                 value={semesterStart}
                 onChangeText={setSemesterStart}
                 placeholder="2026-09-01"
@@ -97,14 +103,19 @@ export default function SettingsScreen() {
             </Field>
             <Field label="总周数">
               <TextInput
-                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
                 value={totalWeeks}
                 onChangeText={setTotalWeeks}
                 keyboardType="number-pad"
               />
             </Field>
-            <Pressable onPress={saveSemester} style={styles.sectionSave}>
-              <ThemedText type="small" style={styles.sectionSaveText}>保存学期设置</ThemedText>
+            <Pressable
+              onPress={saveSemester}
+              style={[styles.sectionSave, { backgroundColor: theme.accent, borderRadius: theme.radius.md }]}
+            >
+              <ThemedText type="small" style={[styles.sectionSaveText, { color: theme.accentText }]}>
+                保存学期设置
+              </ThemedText>
             </Pressable>
           </Section>
 
@@ -120,7 +131,7 @@ export default function SettingsScreen() {
           <Section title="提醒通知">
             <Field label="上课前提醒（分钟）">
               <TextInput
-                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+                style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
                 value={remind}
                 onChangeText={setRemind}
                 onEndEditing={saveRemind}
@@ -134,35 +145,72 @@ export default function SettingsScreen() {
                 <Switch
                   value={settings.notificationsEnabled}
                   onValueChange={(v) => void toggleNotifications(v)}
-                  trackColor={{ false: '#c7c7cc', true: '#3c87f7' }}
+                  trackColor={{ false: theme.border, true: theme.accent }}
                   thumbColor="#ffffff"
                 />
               </View>
-              <Pressable onPress={requestPermission} style={[styles.button, { borderColor: theme.border }]}>
+              <Pressable
+                onPress={requestPermission}
+                style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}
+              >
                 <ThemedText type="small">授权通知</ThemedText>
               </Pressable>
             </View>
           </Section>
 
           <Section title="外观">
-            <View style={styles.themeRow}>
-              {THEME_OPTIONS.map((opt) => {
-                const selected = settings.theme === opt.value;
-                return (
-                  <Pressable
-                    key={opt.value}
-                    onPress={() => void update({ theme: opt.value })}
-                    style={[
-                      styles.themeBtn,
-                      selected && styles.themeBtnSelected,
-                      { borderColor: selected ? '#3c87f7' : theme.border },
-                    ]}
-                  >
-                    <ThemedText type="small">{opt.label}</ThemedText>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <Field label="深浅模式">
+              <View style={styles.themeRow}>
+                {THEME_OPTIONS.map((opt) => {
+                  const selected = settings.theme === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => void update({ theme: opt.value })}
+                      style={[
+                        styles.themeBtn,
+                        {
+                          borderColor: selected ? theme.accent : theme.border,
+                          borderWidth: theme.borderWidth,
+                          backgroundColor: selected ? theme.accent : 'transparent',
+                          minHeight: theme.minTouch || undefined,
+                        },
+                      ]}
+                    >
+                      <ThemedText type="small" style={selected ? { color: theme.accentText } : undefined}>
+                        {opt.label}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Field>
+            <Field label="界面风格">
+              <View style={styles.themeRow}>
+                {STYLE_OPTIONS.map((opt) => {
+                  const selected = settings.style === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => void update({ style: opt.value })}
+                      style={[
+                        styles.themeBtn,
+                        {
+                          borderColor: selected ? theme.accent : theme.border,
+                          borderWidth: theme.borderWidth,
+                          backgroundColor: selected ? theme.accent : 'transparent',
+                          minHeight: theme.minTouch || undefined,
+                        },
+                      ]}
+                    >
+                      <ThemedText type="small" style={selected ? { color: theme.accentText } : undefined}>
+                        {opt.label}
+                      </ThemedText>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Field>
           </Section>
 
         </ScrollView>
@@ -221,7 +269,6 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#c7c7cc',
     borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
@@ -232,7 +279,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#c7c7cc',
     alignSelf: 'flex-start',
   },
   notifRow: {
@@ -254,14 +300,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#c7c7cc',
-  },
-  themeBtnSelected: {
-    borderColor: '#3c87f7',
-    backgroundColor: '#3c87f7',
   },
   sectionSave: {
-    backgroundColor: '#3c87f7',
     borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.two,
@@ -269,7 +309,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   sectionSaveText: {
-    color: '#ffffff',
     fontWeight: '700',
   },
 });

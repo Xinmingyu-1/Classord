@@ -111,7 +111,7 @@ export default function LoginScreen() {
         </ThemedText>
 
         <TextInput
-          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
           value={username}
           onChangeText={setUsername}
           placeholder="学号 / 账号"
@@ -121,7 +121,7 @@ export default function LoginScreen() {
         />
         <View style={styles.passwordRow}>
           <TextInput
-            style={[styles.input, styles.passwordInput, { color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, styles.passwordInput, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
             value={password}
             onChangeText={setPassword}
             placeholder="密码"
@@ -144,7 +144,7 @@ export default function LoginScreen() {
           <>
             <Image source={{ uri: captchaImage }} style={styles.captcha} resizeMode="contain" />
             <TextInput
-              style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+              style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
               value={captcha}
               onChangeText={setCaptcha}
               placeholder="验证码"
@@ -157,12 +157,12 @@ export default function LoginScreen() {
         <Pressable
           onPress={submit}
           disabled={loading}
-          style={[styles.submit, loading && styles.submitDisabled]}
+          style={[styles.submit, { backgroundColor: theme.accent, borderRadius: theme.radius.md }, loading && styles.submitDisabled]}
         >
           {loading ? (
-            <ActivityIndicator color="#ffffff" />
+            <ActivityIndicator color={theme.accentText} />
           ) : (
-            <ThemedText style={styles.submitText}>登录并抓取课表</ThemedText>
+            <ThemedText style={[styles.submitText, { color: theme.accentText }]}>登录并抓取课表</ThemedText>
           )}
         </Pressable>
 
@@ -210,8 +210,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   submit: {
-    backgroundColor: '#3c87f7',
-    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.three,
   },
@@ -219,7 +217,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitText: {
-    color: '#ffffff',
     fontWeight: '700',
   },
   clear: {

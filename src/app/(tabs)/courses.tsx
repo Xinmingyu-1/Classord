@@ -51,7 +51,7 @@ export default function CoursesScreen() {
                 </Pressable>
               </Link>
               <Pressable onPress={() => confirmRemove(item.id, item.name)} hitSlop={8}>
-                <ThemedText type="small" style={styles.delete}>
+                <ThemedText type="small" themeColor="danger">
                   删除
                 </ThemedText>
               </Pressable>
@@ -121,8 +121,5 @@ const styles = StyleSheet.create({
   itemText: {
     flex: 1,
     gap: 2,
-  },
-  delete: {
-    color: '#ef4444',
   },
 });

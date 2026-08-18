@@ -3,15 +3,15 @@ import { useRef } from 'react';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 
 import { BlurTargetContext } from '@/components/blur-target-context';
-import { GlassCard } from '@/components/GlassCard';
-import { GlassBlobs, type ThemeColor } from '@/constants/theme';
-import { useResolvedTheme, useTheme } from '@/hooks/use-theme';
+import { ThemedCard } from '@/components/ThemedCard';
+import type { ThemeColor } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedViewProps = ViewProps & {
   lightColor?: string;
   darkColor?: string;
   type?: ThemeColor;
-  /** 渲染为原生模糊的毛玻璃卡片（GlassCard）。 */
+  /** 渲染为主题卡片（玻璃风格为毛玻璃卡片，其余风格为纯色卡片）。 */
   card?: boolean;
 };
 
@@ -25,24 +25,25 @@ export function ThemedView({
   ...otherProps
 }: ThemedViewProps) {
   const theme = useTheme();
-  const scheme = useResolvedTheme();
-  // 屏幕背景的 BlurTargetView 引用：供子树里的 GlassCard 在 Android 上做真模糊。
+  // 屏幕背景的 BlurTargetView 引用：供子树里的玻璃卡片在 Android 上做真模糊。
   const blurTargetRef = useRef<View | null>(null);
+  // 仅玻璃风格有背景光斑；极简/无障碍为纯色背景。
+  const blobs = type === 'background' ? theme.blobs : null;
 
   if (card) {
     return (
-      <GlassCard style={style} {...otherProps}>
+      <ThemedCard style={style} {...otherProps}>
         {children}
-      </GlassCard>
+      </ThemedCard>
     );
   }
 
   return (
     <BlurTargetContext.Provider value={blurTargetRef}>
       <View style={[{ backgroundColor: theme[type] }, style]} {...otherProps}>
-        {type === 'background' ? (
+        {blobs ? (
           <BlurTargetView ref={blurTargetRef} pointerEvents="none" style={StyleSheet.absoluteFill}>
-            {GlassBlobs[scheme].map((blob, index) => (
+            {blobs.map((blob, index) => (
               <View
                 key={index}
                 style={{

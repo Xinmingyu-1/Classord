@@ -68,7 +68,7 @@ export function CourseForm({
     <ScrollView contentContainerStyle={styles.content}>
       <Field label="课程名">
         <TextInput
-          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
           value={name}
           onChangeText={setName}
           placeholder="如：高等数学"
@@ -77,7 +77,7 @@ export function CourseForm({
       </Field>
       <Field label="教师">
         <TextInput
-          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
           value={teacher}
           onChangeText={setTeacher}
           placeholder="选填"
@@ -86,7 +86,7 @@ export function CourseForm({
       </Field>
       <Field label="地点">
         <TextInput
-          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
           value={location}
           onChangeText={setLocation}
           placeholder="选填"
@@ -105,7 +105,7 @@ export function CourseForm({
       <Field label="节次（起止）">
         <View style={styles.row}>
           <TextInput
-            style={[styles.input, styles.narrow, { color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, styles.narrow, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
             value={startPeriod}
             onChangeText={setStartPeriod}
             keyboardType="number-pad"
@@ -114,7 +114,7 @@ export function CourseForm({
           />
           <ThemedText>—</ThemedText>
           <TextInput
-            style={[styles.input, styles.narrow, { color: theme.text, borderColor: theme.border }]}
+            style={[styles.input, styles.narrow, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
             value={endPeriod}
             onChangeText={setEndPeriod}
             keyboardType="number-pad"
@@ -126,7 +126,7 @@ export function CourseForm({
 
       <Field label="周次（如 1-16 或 1,3,5）">
         <TextInput
-          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
           value={weeksText}
           onChangeText={setWeeksText}
           placeholder="1-20"
@@ -146,8 +146,11 @@ export function CourseForm({
         </View>
       </Field>
 
-      <Pressable onPress={submit} style={styles.submit}>
-        <ThemedText style={styles.submitText}>保存</ThemedText>
+      <Pressable
+        onPress={submit}
+        style={[styles.submit, { backgroundColor: theme.accent, borderRadius: theme.radius.md }]}
+      >
+        <ThemedText style={[styles.submitText, { color: theme.accentText }]}>保存</ThemedText>
       </Pressable>
     </ScrollView>
   );
@@ -169,9 +172,19 @@ function Chip({ selected, label, onPress }: { selected: boolean; label: string; 
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.chip, selected && styles.chipSelected, { borderColor: selected ? '#3c87f7' : theme.border }]}
+      style={[
+        styles.chip,
+        {
+          borderColor: selected ? theme.accent : theme.border,
+          borderWidth: theme.borderWidth,
+          backgroundColor: selected ? theme.accent : 'transparent',
+          minHeight: theme.minTouch || undefined,
+        },
+      ]}
     >
-      <ThemedText type="small">{label}</ThemedText>
+      <ThemedText type="small" style={selected ? { color: theme.accentText } : undefined}>
+        {label}
+      </ThemedText>
     </Pressable>
   );
 }
@@ -207,11 +220,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#c7c7cc',
-  },
-  chipSelected: {
-    borderColor: '#3c87f7',
-    backgroundColor: '#3c87f7',
   },
   swatch: {
     width: 28,
@@ -224,13 +232,10 @@ const styles = StyleSheet.create({
   },
   submit: {
     marginTop: Spacing.three,
-    backgroundColor: '#3c87f7',
-    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.three,
   },
   submitText: {
-    color: '#ffffff',
     fontWeight: '700',
   },
 });

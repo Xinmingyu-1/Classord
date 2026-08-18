@@ -14,6 +14,7 @@ const baseSettings: AppSettings = {
   totalWeeks: 20,
   periods,
   theme: 'light',
+  style: 'glass',
   remindBeforeMinutes: 10,
   notificationsEnabled: true,
 };

@@ -3,12 +3,12 @@ import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router/js-tabs';
 import { StyleSheet } from 'react-native';
 
-import { Radius } from '@/constants/theme';
 import { useResolvedTheme, useTheme } from '@/hooks/use-theme';
 
 export default function TabLayout() {
   const theme = useTheme();
   const scheme = useResolvedTheme();
+  const blur = theme.surface === 'blur';
 
   return (
     <Tabs
@@ -18,20 +18,22 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: 'transparent',
+          backgroundColor: blur ? 'transparent' : theme.backgroundSelected,
           borderTopColor: theme.border,
-          borderTopWidth: 1,
-          borderTopLeftRadius: Radius.lg,
-          borderTopRightRadius: Radius.lg,
+          borderTopWidth: theme.borderWidth,
+          borderTopLeftRadius: theme.radius.lg,
+          borderTopRightRadius: theme.radius.lg,
           overflow: 'hidden',
         },
-        tabBarBackground: () => (
-          <BlurView
-            intensity={70}
-            tint={scheme === 'dark' ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        ),
+        tabBarBackground: blur
+          ? () => (
+              <BlurView
+                intensity={70}
+                tint={scheme === 'dark' ? 'dark' : 'light'}
+                style={StyleSheet.absoluteFill}
+              />
+            )
+          : undefined,
       }}
     >
       <Tabs.Screen

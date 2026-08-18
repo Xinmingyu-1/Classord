@@ -95,20 +95,20 @@ export default function ImportExportScreen() {
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <ThemedText type="subtitle">导入</ThemedText>
-        <Pressable onPress={importExcel} style={[styles.button, { borderColor: theme.border }]}>
+        <Pressable onPress={importExcel} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>从 Excel 导入</ThemedText>
         </Pressable>
-        <Pressable onPress={importIcs} style={[styles.button, { borderColor: theme.border }]}>
+        <Pressable onPress={importIcs} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>从 ICS 导入</ThemedText>
         </Pressable>
 
         <ThemedText type="subtitle" style={styles.section}>
           导出
         </ThemedText>
-        <Pressable onPress={exportIcs} style={[styles.button, { borderColor: theme.border }]}>
+        <Pressable onPress={exportIcs} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>导出为 ICS</ThemedText>
         </Pressable>
-        <Pressable onPress={() => exportFile('classord-schedule.json', coursesToJson(courses))} style={[styles.button, { borderColor: theme.border }]}>
+        <Pressable onPress={() => exportFile('classord-schedule.json', coursesToJson(courses))} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>导出为 JSON 备份</ThemedText>
         </Pressable>
 

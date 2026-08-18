@@ -19,12 +19,16 @@ export interface Period {
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+/** 外观风格：玻璃（ins 毛玻璃）/ 极简 / 无障碍。与 theme 的深浅色正交。 */
+export type AppearanceStyle = 'glass' | 'minimal' | 'accessible';
+
 /** 学期与个性化设置（README「设置与个性化模块」）。 */
 export interface AppSettings {
   semesterStart: string; // 开学日期（ISO "YYYY-MM-DD"）
   totalWeeks: number; // 学期总周数
   periods: Period[]; // 节次→时间表
-  theme: ThemeMode; // 主题
+  theme: ThemeMode; // 主题（跟随系统/浅色/深色）
+  style: AppearanceStyle; // 外观风格
   remindBeforeMinutes: number; // 上课前提醒分钟数（通知模块）
   notificationsEnabled: boolean; // 是否开启上课提醒通知（总开关）
 }

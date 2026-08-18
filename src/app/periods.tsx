@@ -31,6 +31,7 @@ export default function PeriodsScreen() {
   const router = useRouter();
   const settings = useSettingsStore((s) => s.settings);
   const update = useSettingsStore((s) => s.update);
+  const theme = useTheme();
 
   const [periods, setPeriods] = useState<Period[]>(() => settings.periods.map((p) => ({ ...p })));
 
@@ -82,7 +83,7 @@ export default function PeriodsScreen() {
             </ThemedText>
             <TimeField value={p.end} onChange={(v) => updatePeriod(i, 'end', v)} />
             <Pressable onPress={() => removePeriod(i)} hitSlop={8}>
-              <ThemedText type="small" style={styles.removeText}>
+              <ThemedText type="small" themeColor="danger">
                 删除
               </ThemedText>
             </Pressable>
@@ -102,8 +103,11 @@ export default function PeriodsScreen() {
           </Pressable>
         </View>
 
-        <Pressable onPress={save} style={styles.save}>
-          <ThemedText style={styles.saveText}>保存</ThemedText>
+        <Pressable
+          onPress={save}
+          style={[styles.save, { backgroundColor: theme.accent, borderRadius: theme.radius.md }]}
+        >
+          <ThemedText style={[styles.saveText, { color: theme.accentText }]}>保存</ThemedText>
         </Pressable>
       </ScrollView>
     </ThemedView>
@@ -139,7 +143,7 @@ function TimeField({ value, onChange }: { value: string; onChange: (v: string) =
 
   return (
     <>
-      <Pressable onPress={() => setVisible(true)} style={[styles.timeField, { borderColor: theme.border }]}>
+      <Pressable onPress={() => setVisible(true)} style={[styles.timeField, { borderColor: theme.border, borderWidth: theme.borderWidth }]}>
         <ThemedText type="small" style={[styles.timeValue, { color: theme.text }]}>
           {value || '--:--'}
         </ThemedText>
@@ -197,9 +201,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontVariant: ['tabular-nums'],
   },
-  removeText: {
-    color: '#e5484d',
-  },
   addPeriod: {
     alignSelf: 'flex-start',
     paddingVertical: Spacing.one,
@@ -230,13 +231,10 @@ const styles = StyleSheet.create({
   },
   save: {
     marginTop: Spacing.three,
-    backgroundColor: '#3c87f7',
-    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.three,
   },
   saveText: {
-    color: '#ffffff',
     fontWeight: '700',
   },
 });

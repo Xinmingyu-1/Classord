@@ -8,13 +8,13 @@ import { Platform } from 'react-native';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
 import { configureNotificationHandler, scheduleClassReminders } from '@/notifications/schedule';
-import { Colors } from '@/constants/theme';
-import { useResolvedTheme } from '@/hooks/use-theme';
+import { useResolvedTheme, useTheme } from '@/hooks/use-theme';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const theme = useResolvedTheme();
+  const scheme = useResolvedTheme();
+  const { background } = useTheme();
 
   useEffect(() => {
     (async () => {
@@ -39,13 +39,13 @@ export default function RootLayout() {
   // 这里把根视图背景同步为当前主题色（iOS 的 UIWindow 与 Android 的 window 背景）。
   useEffect(() => {
     if (Platform.OS === 'web') return;
-    void SystemUI.setBackgroundColorAsync(Colors[theme].background);
-  }, [theme]);
+    void SystemUI.setBackgroundColorAsync(background);
+  }, [background]);
 
   return (
-    <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
       {/* contentStyle 背景跟随主题：native-stack 场景容器默认白底，深色下 pop 动画会闪白。 */}
-      <Stack screenOptions={{ contentStyle: { backgroundColor: Colors[theme].background } }}>
+      <Stack screenOptions={{ contentStyle: { backgroundColor: background } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="day" options={{ title: '日视图' }} />
         <Stack.Screen name="course/new" options={{ title: '添加课程' }} />

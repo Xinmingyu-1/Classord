@@ -45,6 +45,7 @@ describe('parseIcs RRULE 展开上限', () => {
       { start: '09:00', end: '09:45' }, // 第 2 节
     ],
     theme: 'system',
+    style: 'glass',
     remindBeforeMinutes: 10,
     notificationsEnabled: false,
   };

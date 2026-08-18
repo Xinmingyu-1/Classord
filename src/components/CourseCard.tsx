@@ -1,6 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { GlassCard } from '@/components/GlassCard';
+import { ThemedCard } from '@/components/ThemedCard';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useTheme } from '@/hooks/use-theme';
@@ -13,7 +13,7 @@ const OPACITY_FINISHED = 0.4;
 /**
  * 课程卡片。周视图网格用 compact（只显示名称 + 颜色条，高度由父级绝对定位控制）；
  * 日视图列表用完整信息（名称/地点/教师/节次）。compact 用半透明底（网格卡多，避免大量原生模糊拖慢滚动），
- * 完整卡片用 GlassCard 做真实背景模糊。
+ * 完整卡片用 ThemedCard（玻璃风格做真实背景模糊，其余风格纯色卡片）。
  */
 export function CourseCard({
   course,
@@ -61,7 +61,16 @@ export function CourseCard({
     return (
       <ThemedView
         type="backgroundElement"
-        style={[styles.card, { borderColor: theme.border, opacity }, style]}
+        style={[
+          styles.card,
+          {
+            borderColor: theme.border,
+            borderWidth: theme.borderWidth,
+            borderRadius: theme.radius.md,
+            opacity,
+          },
+          style,
+        ]}
       >
         {body}
       </ThemedView>
@@ -69,17 +78,15 @@ export function CourseCard({
   }
 
   return (
-    <GlassCard radius={12} style={[styles.row, { opacity }, style]}>
+    <ThemedCard radius={theme.radius.md} style={[styles.row, { opacity }, style]}>
       {body}
-    </GlassCard>
+    </ThemedCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    borderRadius: 12,
-    borderWidth: 1,
     overflow: 'hidden',
   },
   row: {

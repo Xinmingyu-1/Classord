@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   totalWeeks: 20,
   periods: DEFAULT_PERIODS,
   theme: 'system',
+  style: 'glass',
   remindBeforeMinutes: 10,
   notificationsEnabled: true,
 };
