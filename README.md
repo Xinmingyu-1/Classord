@@ -4,10 +4,9 @@
 
 ## 安装包下载
 
-所有版本请查看Release
-
-最新版本:https://wwasn.lanzout.com/iklUP42xtxxa
-密码:8chm
+- 所有版本：[GitHub Releases](https://github.com/Xinmingyu-1/Classord/releases)
+- 最新版本 v1.1.0（Android APK）：https://github.com/Xinmingyu-1/Classord/releases/tag/v1.1.0
+- 蓝奏云：https://wwazh.lanzouu.com/iIWgc437oera（密码 `e5rt`）
 
 ## 功能特性
 
@@ -19,7 +18,8 @@
 - **课程管理**：增删改查、颜色标签、学期与节次时间表设置。
 - **上课提醒**：本地通知，支持总开关与提前 N 分钟提醒，按开学日 + 周次 + 节次换算触发时间。
 - **导入导出**：Excel / ICS 导入，ICS / JSON 导出备份。
-- **主题**：浅色 / 深色 / 跟随系统。
+- **主题**：浅色 / 深色 / 跟随系统；玻璃 / 极简 / 卡通三种界面风格。
+- **自定义背景图**：从相册上传图片作为全局背景，可调遮罩强度（弱 / 中 / 强），遮罩自动适配深浅色与界面风格。
 
 > **隐私说明**：教务账号密码仅通过 `expo-secure-store` 加密保存在本机（Keychain / Keystore），用于登录学校教务系统，**不上传到任何服务器**。抓取目标为河北师范大学正方教务系统（`jwgl.hebtu.edu.cn`），仅用于用户本人课表。
 
@@ -36,6 +36,7 @@
 | 文件解析 | `xlsx`（Excel）、`ical.js`（ICS 解析）、`ics`（ICS 生成） |
 | 本地凭据 | `expo-secure-store` |
 | 本地通知 | `expo-notifications` |
+| 图片与文件 | `expo-image`（背景图渲染）、`expo-image-picker`（相册选图）、`expo-file-system`（落盘持久化） |
 | 测试 | Jest + GitHub Actions CI |
 
 ## 环境要求
@@ -71,6 +72,8 @@ npx expo start       # 启动 Metro 开发服务器
 - **学期**：开学日期、总周数（用于周次与通知换算）。
 - **节次时间表**：`/periods` 页编辑各节起止时间，支持「重置为默认」。
 - **提醒**：设置页一键开关通知，可调提前分钟数。
+- **外观**：深浅模式 + 界面风格（玻璃 / 极简 / 卡通）。
+- **自定义背景图**：设置 → 外观 → 选择背景图（相册选图，全局生效），可调遮罩强度（弱 / 中 / 强）、随时移除。
 
 ## 构建与发布
 
@@ -88,7 +91,8 @@ src/
 ├── services/
 │   ├── edu/         # 教务抓取（rsa.ts / client.ts / parser.ts）
 │   ├── import/      # Excel / ICS 导入
-│   └── export/      # ICS / JSON 导出
+│   ├── export/      # ICS / JSON 导出
+│   └── background.ts # 自定义背景图（选图、落盘、清理）
 ├── store/           # Zustand 状态（courses、settings）
 ├── theme/           # 主题与调色板
 └── utils/           # 日期/周次换算、ID 生成
