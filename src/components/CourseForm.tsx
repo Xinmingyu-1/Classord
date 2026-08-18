@@ -68,7 +68,7 @@ export function CourseForm({
     <ScrollView contentContainerStyle={styles.content}>
       <Field label="课程名">
         <TextInput
-          style={[styles.input, { color: theme.text }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
           value={name}
           onChangeText={setName}
           placeholder="如：高等数学"
@@ -77,7 +77,7 @@ export function CourseForm({
       </Field>
       <Field label="教师">
         <TextInput
-          style={[styles.input, { color: theme.text }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
           value={teacher}
           onChangeText={setTeacher}
           placeholder="选填"
@@ -86,7 +86,7 @@ export function CourseForm({
       </Field>
       <Field label="地点">
         <TextInput
-          style={[styles.input, { color: theme.text }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
           value={location}
           onChangeText={setLocation}
           placeholder="选填"
@@ -105,7 +105,7 @@ export function CourseForm({
       <Field label="节次（起止）">
         <View style={styles.row}>
           <TextInput
-            style={[styles.input, styles.narrow, { color: theme.text }]}
+            style={[styles.input, styles.narrow, { color: theme.text, borderColor: theme.border }]}
             value={startPeriod}
             onChangeText={setStartPeriod}
             keyboardType="number-pad"
@@ -114,7 +114,7 @@ export function CourseForm({
           />
           <ThemedText>—</ThemedText>
           <TextInput
-            style={[styles.input, styles.narrow, { color: theme.text }]}
+            style={[styles.input, styles.narrow, { color: theme.text, borderColor: theme.border }]}
             value={endPeriod}
             onChangeText={setEndPeriod}
             keyboardType="number-pad"
@@ -126,7 +126,7 @@ export function CourseForm({
 
       <Field label="周次（如 1-16 或 1,3,5）">
         <TextInput
-          style={[styles.input, { color: theme.text }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
           value={weeksText}
           onChangeText={setWeeksText}
           placeholder="1-20"
@@ -165,8 +165,12 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function Chip({ selected, label, onPress }: { selected: boolean; label: string; onPress: () => void }) {
+  const theme = useTheme();
   return (
-    <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
+    <Pressable
+      onPress={onPress}
+      style={[styles.chip, selected && styles.chipSelected, { borderColor: selected ? '#3c87f7' : theme.border }]}
+    >
       <ThemedText type="small">{label}</ThemedText>
     </Pressable>
   );
@@ -183,7 +187,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#c7c7cc',
-    borderRadius: 8,
+    borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     fontSize: 16,
@@ -221,7 +225,7 @@ const styles = StyleSheet.create({
   submit: {
     marginTop: Spacing.three,
     backgroundColor: '#3c87f7',
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.three,
   },

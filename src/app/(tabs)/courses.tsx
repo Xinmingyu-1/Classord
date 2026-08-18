@@ -1,16 +1,19 @@
 import { Link, type Href } from 'expo-router';
+import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { Alert, FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { useCoursesStore } from '@/store/courses';
 
 /** 课程管理列表（README「课程管理模块」）。 */
 export default function CoursesScreen() {
   const courses = useCoursesStore((s) => s.courses);
   const remove = useCoursesStore((s) => s.remove);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const confirmRemove = (id: string, name: string) => {
     Alert.alert('删除课程', `确定删除「${name}」吗？`, [
@@ -21,7 +24,7 @@ export default function CoursesScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.safe}>
+      <SafeAreaView edges={['top']} style={[styles.safe, { paddingBottom: tabBarHeight }]}>
         <View style={styles.actions}>
           <ActionLink href="/course/new" label="添加" />
           <ActionLink href="/import" label="导入" />
@@ -61,9 +64,12 @@ export default function CoursesScreen() {
 }
 
 function ActionLink({ href, label }: { href: Href; label: string }) {
+  const theme = useTheme();
   return (
     <Link href={href} asChild>
-      <Pressable style={styles.actionBtn}>
+      <Pressable
+        style={[styles.actionBtn, { borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
+      >
         <ThemedText type="small">{label}</ThemedText>
       </Pressable>
     </Link>
@@ -85,9 +91,8 @@ const styles = StyleSheet.create({
   actionBtn: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#c7c7cc',
   },
   list: {
     paddingHorizontal: Spacing.three,

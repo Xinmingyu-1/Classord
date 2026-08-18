@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useEffect, useState } from 'react';
 import {
   Animated,
@@ -25,6 +26,7 @@ export default function WeekScheduleScreen() {
   const courses = useCoursesStore((s) => s.courses);
   const settings = useSettingsStore((s) => s.settings);
   const { width } = useWindowDimensions();
+  const tabBarHeight = useBottomTabBarHeight();
   // 视口实际宽度（去掉左右 padding），作为每一页的宽度；未测得前先用窗口宽度。
   const [contentWidth, setContentWidth] = useState(width);
 
@@ -101,6 +103,8 @@ export default function WeekScheduleScreen() {
             courses={weekCourses}
             periodCount={periodCount}
             periods={settings.periods}
+            week={w}
+            semesterStart={settings.semesterStart}
             onPressDay={(d) => openDay(d, w)}
           />
         )}
@@ -110,7 +114,7 @@ export default function WeekScheduleScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.safe}>
+      <SafeAreaView edges={['top']} style={[styles.safe, { paddingBottom: tabBarHeight }]}>
         <View style={styles.weekBar}>
           <Pressable onPress={() => snapTo(-1)} hitSlop={12}>
             <ThemedText style={styles.arrow}>‹</ThemedText>

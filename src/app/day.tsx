@@ -7,7 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
-import { currentWeekClamped, dayLabel, isCourseInWeek } from '@/utils/date';
+import { currentWeekClamped, courseDate, atTime, dayLabel, isCourseInWeek } from '@/utils/date';
 
 /** 日视图：某一天的课程列表（README「日视图」）。 */
 export default function DayScheduleScreen() {
@@ -21,6 +21,9 @@ export default function DayScheduleScreen() {
   const list = courses
     .filter((c) => c.dayOfWeek === day && isCourseInWeek(c.weeks, week))
     .sort((a, b) => a.startPeriod - b.startPeriod);
+
+  const date = courseDate(settings.semesterStart, week, day);
+  const now = new Date();
 
   const timeOf = (period: number) => {
     const p = settings.periods[period - 1];
@@ -36,14 +39,18 @@ export default function DayScheduleScreen() {
         {list.length === 0 ? (
           <ThemedText themeColor="textSecondary">本周该天暂无课程</ThemedText>
         ) : (
-          list.map((course) => (
-            <View key={course.id} style={styles.item}>
-              <ThemedText type="small" themeColor="textSecondary">
-                {course.startPeriod}-{course.endPeriod} 节 · {timeOf(course.startPeriod)}
-              </ThemedText>
-              <CourseCard course={course} />
-            </View>
-          ))
+          list.map((course) => {
+            const endTime = settings.periods[course.endPeriod - 1]?.end;
+            const dimmed = endTime ? atTime(date, endTime).getTime() < now.getTime() : false;
+            return (
+              <View key={course.id} style={styles.item}>
+                <ThemedText type="small" themeColor="textSecondary">
+                  {course.startPeriod}-{course.endPeriod} 节 · {timeOf(course.startPeriod)}
+                </ThemedText>
+                <CourseCard course={course} dimmed={dimmed} />
+              </View>
+            );
+          })
         )}
       </ScrollView>
     </ThemedView>

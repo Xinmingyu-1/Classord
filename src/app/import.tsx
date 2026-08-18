@@ -7,6 +7,7 @@ import { Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { coursesToIcs } from '@/services/export/ics';
 import { coursesToJson } from '@/services/export/json';
 import { parseExcel } from '@/services/import/excel';
@@ -20,6 +21,7 @@ export default function ImportExportScreen() {
   const addMany = useCoursesStore((s) => s.addMany);
   const settings = useSettingsStore((s) => s.settings);
   const [status, setStatus] = useState('');
+  const theme = useTheme();
 
   const importExcel = async () => {
     try {
@@ -93,20 +95,20 @@ export default function ImportExportScreen() {
     <ThemedView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <ThemedText type="subtitle">导入</ThemedText>
-        <Pressable onPress={importExcel} style={styles.button}>
+        <Pressable onPress={importExcel} style={[styles.button, { borderColor: theme.border }]}>
           <ThemedText>从 Excel 导入</ThemedText>
         </Pressable>
-        <Pressable onPress={importIcs} style={styles.button}>
+        <Pressable onPress={importIcs} style={[styles.button, { borderColor: theme.border }]}>
           <ThemedText>从 ICS 导入</ThemedText>
         </Pressable>
 
         <ThemedText type="subtitle" style={styles.section}>
           导出
         </ThemedText>
-        <Pressable onPress={exportIcs} style={styles.button}>
+        <Pressable onPress={exportIcs} style={[styles.button, { borderColor: theme.border }]}>
           <ThemedText>导出为 ICS</ThemedText>
         </Pressable>
-        <Pressable onPress={() => exportFile('classord-schedule.json', coursesToJson(courses))} style={styles.button}>
+        <Pressable onPress={() => exportFile('classord-schedule.json', coursesToJson(courses))} style={[styles.button, { borderColor: theme.border }]}>
           <ThemedText>导出为 JSON 备份</ThemedText>
         </Pressable>
 
@@ -131,9 +133,8 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#c7c7cc',
     alignSelf: 'flex-start',
   },
   section: {

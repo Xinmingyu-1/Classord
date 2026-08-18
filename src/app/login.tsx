@@ -111,7 +111,7 @@ export default function LoginScreen() {
         </ThemedText>
 
         <TextInput
-          style={[styles.input, { color: theme.text }]}
+          style={[styles.input, { color: theme.text, borderColor: theme.border }]}
           value={username}
           onChangeText={setUsername}
           placeholder="学号 / 账号"
@@ -121,7 +121,7 @@ export default function LoginScreen() {
         />
         <View style={styles.passwordRow}>
           <TextInput
-            style={[styles.input, styles.passwordInput, { color: theme.text }]}
+            style={[styles.input, styles.passwordInput, { color: theme.text, borderColor: theme.border }]}
             value={password}
             onChangeText={setPassword}
             placeholder="密码"
@@ -144,7 +144,7 @@ export default function LoginScreen() {
           <>
             <Image source={{ uri: captchaImage }} style={styles.captcha} resizeMode="contain" />
             <TextInput
-              style={[styles.input, { color: theme.text }]}
+              style={[styles.input, { color: theme.text, borderColor: theme.border }]}
               value={captcha}
               onChangeText={setCaptcha}
               placeholder="验证码"
@@ -186,8 +186,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#c7c7cc',
-    borderRadius: 8,
+    borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     fontSize: 16,
@@ -212,7 +211,7 @@ const styles = StyleSheet.create({
   },
   submit: {
     backgroundColor: '#3c87f7',
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.three,
   },

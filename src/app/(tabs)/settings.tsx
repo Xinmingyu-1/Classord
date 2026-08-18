@@ -1,4 +1,5 @@
 import { useRouter } from 'expo-router';
+import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ export default function SettingsScreen() {
   const update = useSettingsStore((s) => s.update);
   const theme = useTheme();
   const router = useRouter();
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [semesterStart, setSemesterStart] = useState(settings.semesterStart);
   const [totalWeeks, setTotalWeeks] = useState(String(settings.totalWeeks));
@@ -51,6 +53,7 @@ export default function SettingsScreen() {
       totalWeeks: weeks,
     });
     await reschedule();
+    Alert.alert('已保存', `学期设置已保存（开学 ${semesterStart}，共 ${weeks} 周）。`);
   };
 
   const saveRemind = async () => {
@@ -80,12 +83,12 @@ export default function SettingsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.safe}>
+      <SafeAreaView edges={['top']} style={[styles.safe, { paddingBottom: tabBarHeight }]}>
         <ScrollView contentContainerStyle={styles.content}>
           <Section title="学期设置">
             <Field label="开学日期（YYYY-MM-DD）">
               <TextInput
-                style={[styles.input, { color: theme.text }]}
+                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
                 value={semesterStart}
                 onChangeText={setSemesterStart}
                 placeholder="2026-09-01"
@@ -94,7 +97,7 @@ export default function SettingsScreen() {
             </Field>
             <Field label="总周数">
               <TextInput
-                style={[styles.input, { color: theme.text }]}
+                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
                 value={totalWeeks}
                 onChangeText={setTotalWeeks}
                 keyboardType="number-pad"
@@ -117,7 +120,7 @@ export default function SettingsScreen() {
           <Section title="提醒通知">
             <Field label="上课前提醒（分钟）">
               <TextInput
-                style={[styles.input, { color: theme.text }]}
+                style={[styles.input, { color: theme.text, borderColor: theme.border }]}
                 value={remind}
                 onChangeText={setRemind}
                 onEndEditing={saveRemind}
@@ -135,7 +138,7 @@ export default function SettingsScreen() {
                   thumbColor="#ffffff"
                 />
               </View>
-              <Pressable onPress={requestPermission} style={styles.button}>
+              <Pressable onPress={requestPermission} style={[styles.button, { borderColor: theme.border }]}>
                 <ThemedText type="small">授权通知</ThemedText>
               </Pressable>
             </View>
@@ -149,7 +152,11 @@ export default function SettingsScreen() {
                   <Pressable
                     key={opt.value}
                     onPress={() => void update({ theme: opt.value })}
-                    style={[styles.themeBtn, selected && styles.themeBtnSelected]}
+                    style={[
+                      styles.themeBtn,
+                      selected && styles.themeBtnSelected,
+                      { borderColor: selected ? '#3c87f7' : theme.border },
+                    ]}
                   >
                     <ThemedText type="small">{opt.label}</ThemedText>
                   </Pressable>
@@ -168,7 +175,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <View style={styles.section}>
       <ThemedText type="subtitle">{title}</ThemedText>
-      {children}
+      <ThemedView card style={styles.sectionCard}>
+        {children}
+      </ThemedView>
     </View>
   );
 }
@@ -198,6 +207,10 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.three,
   },
+  sectionCard: {
+    padding: Spacing.three,
+    gap: Spacing.three,
+  },
   field: {
     gap: Spacing.two,
   },
@@ -209,7 +222,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#c7c7cc',
-    borderRadius: 8,
+    borderRadius: 14,
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     fontSize: 16,
@@ -217,7 +230,7 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#c7c7cc',
     alignSelf: 'flex-start',
@@ -239,7 +252,7 @@ const styles = StyleSheet.create({
   themeBtn: {
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#c7c7cc',
   },
@@ -249,7 +262,7 @@ const styles = StyleSheet.create({
   },
   sectionSave: {
     backgroundColor: '#3c87f7',
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.four,

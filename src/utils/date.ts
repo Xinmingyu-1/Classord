@@ -98,6 +98,12 @@ export function courseStartDate(
   return new Date(base.getFullYear(), base.getMonth(), base.getDate(), hour, minute);
 }
 
+/** 将 "HH:mm" 时刻叠加到某日期（本地时区），返回对应时刻的 Date。 */
+export function atTime(date: Date, time: string): Date {
+  const [hour, minute] = time.split(':').map(Number);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), hour, minute);
+}
+
 /** 某日期落在学期第几周（以开学日所在周为第 1 周；早于第 1 周返回 1）。与 courseDate 互逆。 */
 export function weekOfDate(semesterStartISO: string, date: Date): number {
   const [year, month, day] = semesterStartISO.split('-').map(Number);

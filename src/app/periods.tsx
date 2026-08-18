@@ -139,7 +139,7 @@ function TimeField({ value, onChange }: { value: string; onChange: (v: string) =
 
   return (
     <>
-      <Pressable onPress={() => setVisible(true)} style={styles.timeField}>
+      <Pressable onPress={() => setVisible(true)} style={[styles.timeField, { borderColor: theme.border }]}>
         <ThemedText type="small" style={[styles.timeValue, { color: theme.text }]}>
           {value || '--:--'}
         </ThemedText>
@@ -188,8 +188,7 @@ const styles = StyleSheet.create({
     minWidth: 64,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#c7c7cc',
-    borderRadius: 8,
+    borderRadius: 14,
     paddingHorizontal: Spacing.two,
     paddingVertical: Spacing.two,
   },
@@ -232,7 +231,7 @@ const styles = StyleSheet.create({
   save: {
     marginTop: Spacing.three,
     backgroundColor: '#3c87f7',
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     paddingVertical: Spacing.three,
   },

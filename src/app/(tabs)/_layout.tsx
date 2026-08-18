@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { Tabs } from 'expo-router/js-tabs';
+import { StyleSheet } from 'react-native';
 
-import { useTheme } from '@/hooks/use-theme';
+import { Radius } from '@/constants/theme';
+import { useResolvedTheme, useTheme } from '@/hooks/use-theme';
 
 export default function TabLayout() {
   const theme = useTheme();
+  const scheme = useResolvedTheme();
 
   return (
     <Tabs
@@ -13,9 +17,22 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: {
-          backgroundColor: theme.background,
-          borderTopColor: theme.backgroundElement,
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopColor: theme.border,
+          borderTopWidth: 1,
+          borderTopLeftRadius: Radius.lg,
+          borderTopRightRadius: Radius.lg,
+          overflow: 'hidden',
         },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={70}
+            tint={scheme === 'dark' ? 'dark' : 'light'}
+            blurMethod="dimezisBlurViewSdk31Plus"
+            style={StyleSheet.absoluteFill}
+          />
+        ),
       }}
     >
       <Tabs.Screen

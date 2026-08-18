@@ -4,6 +4,7 @@ import { DayColumn } from '@/components/DayColumn';
 import { ThemedText } from '@/components/themed-text';
 import { DAY_HEADER_HEIGHT, PERIOD_HEIGHT, TIME_COL_WIDTH } from '@/constants/timetable';
 import type { Course, Period } from '@/models/course';
+import { courseDate } from '@/utils/date';
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7];
 
@@ -12,11 +13,15 @@ export function WeekGrid({
   courses,
   periodCount,
   periods,
+  week,
+  semesterStart,
   onPressDay,
 }: {
   courses: Course[];
   periodCount: number;
   periods: Period[];
+  week: number;
+  semesterStart: string;
   onPressDay?: (dayOfWeek: number) => void;
 }) {
   return (
@@ -39,8 +44,10 @@ export function WeekGrid({
           <DayColumn
             key={day}
             dayOfWeek={day}
+            date={courseDate(semesterStart, week, day)}
             courses={courses.filter((c) => c.dayOfWeek === day)}
             periodCount={periodCount}
+            periods={periods}
             onPress={onPressDay}
           />
         ))}
