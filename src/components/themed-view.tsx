@@ -1,5 +1,8 @@
+import { BlurTargetView } from 'expo-blur';
+import { useRef } from 'react';
 import { StyleSheet, View, type ViewProps } from 'react-native';
 
+import { BlurTargetContext } from '@/components/blur-target-context';
 import { GlassCard } from '@/components/GlassCard';
 import { GlassBlobs, type ThemeColor } from '@/constants/theme';
 import { useResolvedTheme, useTheme } from '@/hooks/use-theme';
@@ -23,6 +26,8 @@ export function ThemedView({
 }: ThemedViewProps) {
   const theme = useTheme();
   const scheme = useResolvedTheme();
+  // 屏幕背景的 BlurTargetView 引用：供子树里的 GlassCard 在 Android 上做真模糊。
+  const blurTargetRef = useRef<View | null>(null);
 
   if (card) {
     return (
@@ -33,28 +38,30 @@ export function ThemedView({
   }
 
   return (
-    <View style={[{ backgroundColor: theme[type] }, style]} {...otherProps}>
-      {type === 'background' ? (
-        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          {GlassBlobs[scheme].map((blob, index) => (
-            <View
-              key={index}
-              style={{
-                position: 'absolute',
-                width: blob.size,
-                height: blob.size,
-                borderRadius: blob.size / 2,
-                backgroundColor: blob.color,
-                top: blob.top,
-                left: blob.left,
-                right: blob.right,
-                bottom: blob.bottom,
-              }}
-            />
-          ))}
-        </View>
-      ) : null}
-      {children}
-    </View>
+    <BlurTargetContext.Provider value={blurTargetRef}>
+      <View style={[{ backgroundColor: theme[type] }, style]} {...otherProps}>
+        {type === 'background' ? (
+          <BlurTargetView ref={blurTargetRef} pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {GlassBlobs[scheme].map((blob, index) => (
+              <View
+                key={index}
+                style={{
+                  position: 'absolute',
+                  width: blob.size,
+                  height: blob.size,
+                  borderRadius: blob.size / 2,
+                  backgroundColor: blob.color,
+                  top: blob.top,
+                  left: blob.left,
+                  right: blob.right,
+                  bottom: blob.bottom,
+                }}
+              />
+            ))}
+          </BlurTargetView>
+        ) : null}
+        {children}
+      </View>
+    </BlurTargetContext.Provider>
   );
 }

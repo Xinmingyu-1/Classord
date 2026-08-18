@@ -29,7 +29,6 @@ export default function TabLayout() {
           <BlurView
             intensity={70}
             tint={scheme === 'dark' ? 'dark' : 'light'}
-            blurMethod="dimezisBlurViewSdk31Plus"
             style={StyleSheet.absoluteFill}
           />
         ),

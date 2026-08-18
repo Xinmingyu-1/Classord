@@ -68,7 +68,10 @@ function ActionLink({ href, label }: { href: Href; label: string }) {
   return (
     <Link href={href} asChild>
       <Pressable
-        style={[styles.actionBtn, { borderColor: theme.border, backgroundColor: theme.backgroundElement }]}
+        style={StyleSheet.flatten([
+          styles.actionBtn,
+          { borderColor: theme.border, backgroundColor: theme.backgroundElement },
+        ])}
       >
         <ThemedText type="small">{label}</ThemedText>
       </Pressable>
