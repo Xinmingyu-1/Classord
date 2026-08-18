@@ -46,6 +46,8 @@ describe('parseIcs RRULE 展开上限', () => {
     ],
     theme: 'system',
     style: 'glass',
+    backgroundImage: null,
+    backgroundScrim: 'medium',
     remindBeforeMinutes: 10,
     notificationsEnabled: false,
   };

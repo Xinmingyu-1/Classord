@@ -39,6 +39,14 @@
       "expo-secure-store",
       "expo-sharing",
       "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许 Classord 访问相册以设置自定义背景图。",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-build-properties",

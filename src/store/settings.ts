@@ -10,6 +10,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   periods: DEFAULT_PERIODS,
   theme: 'system',
   style: 'glass',
+  backgroundImage: null,
+  backgroundScrim: 'medium',
   remindBeforeMinutes: 10,
   notificationsEnabled: true,
 };

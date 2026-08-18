@@ -19,6 +19,9 @@ export interface Period {
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+/** 自定义背景图遮罩强度：弱（图更清晰）/ 中 / 强（文字更易读）。 */
+export type BackgroundScrim = 'light' | 'medium' | 'strong';
+
 /** 外观风格：玻璃（ins 毛玻璃）/ 极简 / 卡通。与 theme 的深浅色正交。 */
 export type AppearanceStyle = 'glass' | 'minimal' | 'cartoon';
 
@@ -29,6 +32,10 @@ export interface AppSettings {
   periods: Period[]; // 节次→时间表
   theme: ThemeMode; // 主题（跟随系统/浅色/深色）
   style: AppearanceStyle; // 外观风格
+  /** 自定义背景图的持久化 file:// URI（null = 未设置，使用主题默认背景）。 */
+  backgroundImage: string | null;
+  /** 自定义背景图遮罩强度。 */
+  backgroundScrim: BackgroundScrim;
   remindBeforeMinutes: number; // 上课前提醒分钟数（通知模块）
   notificationsEnabled: boolean; // 是否开启上课提醒通知（总开关）
 }

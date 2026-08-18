@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
@@ -9,10 +9,11 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { notificationsSupported, requestNotificationPermission, scheduleClassReminders } from '@/notifications/schedule';
+import { clearBackgroundImage, pickBackgroundImage } from '@/services/background';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
 import { isValidIsoDate } from '@/utils/date';
-import type { AppearanceStyle, ThemeMode } from '@/models/course';
+import type { AppearanceStyle, BackgroundScrim, ThemeMode } from '@/models/course';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
   { value: 'system', label: '跟随系统' },
@@ -24,6 +25,12 @@ const STYLE_OPTIONS: { value: AppearanceStyle; label: string }[] = [
   { value: 'glass', label: '玻璃' },
   { value: 'minimal', label: '极简' },
   { value: 'cartoon', label: '卡通' },
+];
+
+const SCRIM_OPTIONS: { value: BackgroundScrim; label: string }[] = [
+  { value: 'light', label: '弱' },
+  { value: 'medium', label: '中' },
+  { value: 'strong', label: '强' },
 ];
 
 /** 设置与个性化（README「设置与个性化模块」）。 */
@@ -85,6 +92,24 @@ export default function SettingsScreen() {
   const toggleNotifications = async (enabled: boolean) => {
     await update({ notificationsEnabled: enabled });
     await reschedule();
+  };
+
+  const pickBackground = async () => {
+    if (Platform.OS === 'web') {
+      Alert.alert('暂不支持', '网页版暂不支持自定义背景图，请在手机端设置。');
+      return;
+    }
+    try {
+      const uri = await pickBackgroundImage();
+      if (uri) await update({ backgroundImage: uri });
+    } catch {
+      Alert.alert('设置失败', '无法读取所选图片，请重试。');
+    }
+  };
+
+  const clearBackground = async () => {
+    clearBackgroundImage();
+    await update({ backgroundImage: null });
   };
 
   return (
@@ -211,6 +236,54 @@ export default function SettingsScreen() {
                 })}
               </View>
             </Field>
+            <Field label="自定义背景图">
+              <View style={styles.bgRow}>
+                <Pressable
+                  onPress={() => void pickBackground()}
+                  style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}
+                >
+                  <ThemedText type="small">{settings.backgroundImage ? '更换背景图' : '选择背景图'}</ThemedText>
+                </Pressable>
+                {settings.backgroundImage ? (
+                  <Pressable
+                    onPress={() => void clearBackground()}
+                    style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}
+                  >
+                    <ThemedText type="small" themeColor="danger">
+                      移除背景图
+                    </ThemedText>
+                  </Pressable>
+                ) : null}
+              </View>
+            </Field>
+            {settings.backgroundImage ? (
+              <Field label="背景遮罩">
+                <View style={styles.themeRow}>
+                  {SCRIM_OPTIONS.map((opt) => {
+                    const selected = settings.backgroundScrim === opt.value;
+                    return (
+                      <Pressable
+                        key={opt.value}
+                        onPress={() => void update({ backgroundScrim: opt.value })}
+                        style={[
+                          styles.themeBtn,
+                          {
+                            borderColor: selected ? theme.accent : theme.border,
+                            borderWidth: theme.borderWidth,
+                            backgroundColor: selected ? theme.accent : 'transparent',
+                            minHeight: theme.minTouch || undefined,
+                          },
+                        ]}
+                      >
+                        <ThemedText type="small" style={selected ? { color: theme.accentText } : undefined}>
+                          {opt.label}
+                        </ThemedText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </Field>
+            ) : null}
           </Section>
 
         </ScrollView>
@@ -300,6 +373,10 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: 14,
     borderWidth: 1,
+  },
+  bgRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
   },
   sectionSave: {
     borderRadius: 14,

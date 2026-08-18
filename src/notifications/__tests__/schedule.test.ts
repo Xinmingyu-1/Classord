@@ -15,6 +15,8 @@ const baseSettings: AppSettings = {
   periods,
   theme: 'light',
   style: 'glass',
+  backgroundImage: null,
+  backgroundScrim: 'medium',
   remindBeforeMinutes: 10,
   notificationsEnabled: true,
 };
