@@ -23,7 +23,7 @@ const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
 const STYLE_OPTIONS: { value: AppearanceStyle; label: string }[] = [
   { value: 'glass', label: '玻璃' },
   { value: 'minimal', label: '极简' },
-  { value: 'accessible', label: '无障碍' },
+  { value: 'cartoon', label: '卡通' },
 ];
 
 /** 设置与个性化（README「设置与个性化模块」）。 */

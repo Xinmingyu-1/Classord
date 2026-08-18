@@ -1,6 +1,6 @@
 /**
  * 主题 token 系统。区别于早期只有「深浅色」两套颜色，现在把「外观风格」拆出来，
- * 形成 `风格(glass/minimal/accessible) × 深浅(light/dark)` 的矩阵。
+ * 形成 `风格(glass/minimal) × 深浅(light/dark)` 的矩阵。
  * 每个主题展平为一份 `Theme`，供 `useTheme()` 直接返回。
  */
 
@@ -79,7 +79,7 @@ export type ThemeColor =
 const radius = {
   glass: { sm: 10, md: 14, lg: 20, pill: 999 },
   minimal: { sm: 2, md: 4, lg: 8, pill: 999 },
-  accessible: { sm: 4, md: 8, lg: 12, pill: 999 },
+  cartoon: { sm: 12, md: 18, lg: 26, pill: 999 },
 } as const;
 
 export const Themes: Record<AppearanceStyle, Record<'light' | 'dark', Theme>> = {
@@ -163,44 +163,44 @@ export const Themes: Record<AppearanceStyle, Record<'light' | 'dark', Theme>> = 
       minTouch: 0,
     },
   },
-  accessible: {
+  cartoon: {
     light: {
-      text: '#000000',
-      background: '#FFFFFF',
+      text: '#3A2E28',
+      background: '#FFF6E9',
       backgroundElement: '#FFFFFF',
-      backgroundSelected: '#E5E7EB',
-      textSecondary: '#374151',
-      border: '#000000',
-      cardBorder: '#000000',
-      accent: '#0066CC',
+      backgroundSelected: '#FFE9C7',
+      textSecondary: '#8A7B6E',
+      border: '#3A2E28',
+      cardBorder: '#3A2E28',
+      accent: '#3E9BE0',
       accentText: '#FFFFFF',
-      danger: '#D32F2F',
-      focus: '#0066CC',
-      radius: radius.accessible,
+      danger: '#E8556D',
+      focus: '#3E9BE0',
+      radius: radius.cartoon,
       borderWidth: 2,
-      cardShadow: null,
+      cardShadow: '0 4px 12px rgba(58,46,40,0.12)',
       surface: 'solid',
       blobs: null,
-      minTouch: 44,
+      minTouch: 0,
     },
     dark: {
-      text: '#FFFFFF',
-      background: '#000000',
-      backgroundElement: '#0F0F0F',
-      backgroundSelected: '#1F1F1F',
-      textSecondary: '#E5E7EB',
-      border: '#FFFFFF',
-      cardBorder: '#FFFFFF',
-      accent: '#4C9FFF',
-      accentText: '#000000',
-      danger: '#FF8A80',
-      focus: '#4C9FFF',
-      radius: radius.accessible,
+      text: '#F5EFE6',
+      background: '#1B2740',
+      backgroundElement: '#253350',
+      backgroundSelected: '#314367',
+      textSecondary: '#A8B2C8',
+      border: '#5A6A8C',
+      cardBorder: '#F5EFE6',
+      accent: '#3E9BE0',
+      accentText: '#FFFFFF',
+      danger: '#FF7A8A',
+      focus: '#5BB3E8',
+      radius: radius.cartoon,
       borderWidth: 2,
-      cardShadow: null,
+      cardShadow: '0 4px 12px rgba(0,0,0,0.35)',
       surface: 'solid',
       blobs: null,
-      minTouch: 44,
+      minTouch: 0,
     },
   },
 };

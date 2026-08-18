@@ -19,8 +19,8 @@ export interface Period {
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-/** 外观风格：玻璃（ins 毛玻璃）/ 极简 / 无障碍。与 theme 的深浅色正交。 */
-export type AppearanceStyle = 'glass' | 'minimal' | 'accessible';
+/** 外观风格：玻璃（ins 毛玻璃）/ 极简 / 卡通。与 theme 的深浅色正交。 */
+export type AppearanceStyle = 'glass' | 'minimal' | 'cartoon';
 
 /** 学期与个性化设置（README「设置与个性化模块」）。 */
 export interface AppSettings {
