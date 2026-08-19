@@ -5,8 +5,8 @@
 ## 安装包下载
 
 - 所有版本：[GitHub Releases](https://github.com/Xinmingyu-1/Classord/releases)
-- 最新版本 v1.1.0（Android APK）：https://github.com/Xinmingyu-1/Classord/releases/tag/v1.1.0
-- 蓝奏云：https://wwazh.lanzouu.com/iIWgc437oera（密码 `e5rt`）
+- 最新版本 v1.1.1（Android APK）：https://github.com/Xinmingyu-1/Classord/releases/tag/v1.1.1
+- 蓝奏云：https://wwasn.lanzout.com/i7jok43fx8dc（密码 `1s94`）
 
 ## 功能特性
 
