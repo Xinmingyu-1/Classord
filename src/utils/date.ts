@@ -114,3 +114,24 @@ export function weekOfDate(semesterStartISO: string, date: Date): number {
   const diffDays = Math.floor((dateDay.getTime() - firstMonday.getTime()) / 86400000);
   return diffDays < 0 ? 1 : Math.floor(diffDays / 7) + 1;
 }
+
+/** Date → 本地 "YYYY-MM-DD"。 */
+export function toIsoDate(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** 由「今天是学期第几周」反推开学日期（返回第 1 周所在周的周一，ISO）。与 weekOfDate 互逆。 */
+export function semesterStartFromWeek(week: number, now: Date = new Date()): string {
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const daysSinceMonday = (day.getDay() + 6) % 7;
+  const thisMonday = new Date(day.getFullYear(), day.getMonth(), day.getDate() - daysSinceMonday);
+  const firstMonday = new Date(
+    thisMonday.getFullYear(),
+    thisMonday.getMonth(),
+    thisMonday.getDate() - (week - 1) * 7,
+  );
+  return toIsoDate(firstMonday);
+}

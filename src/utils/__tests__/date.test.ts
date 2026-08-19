@@ -8,6 +8,8 @@ import {
   isCourseInWeek,
   isValidIsoDate,
   parseWeeksText,
+  semesterStartFromWeek,
+  toIsoDate,
   weekOfDate,
 } from '@/utils/date';
 
@@ -132,6 +134,32 @@ describe('formatWeeks', () => {
   test('与 parseWeeksText 互逆', () => {
     expect(formatWeeks(parseWeeksText('1-16'))).toBe('1-16');
     expect(formatWeeks(parseWeeksText('1,3,5'))).toBe('1,3,5');
+  });
+});
+
+describe('toIsoDate / semesterStartFromWeek', () => {
+  const isoToDate = (iso: string) => {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  test('toIsoDate 格式化本地日期', () => {
+    expect(toIsoDate(new Date(2026, 8, 1))).toBe('2026-09-01');
+    expect(toIsoDate(new Date(2026, 0, 5))).toBe('2026-01-05');
+  });
+
+  test('第 1 周 = 今天所在周的周一', () => {
+    // 2026-09-19 是周六，所在周的周一是 09-14
+    expect(semesterStartFromWeek(1, new Date(2026, 8, 19))).toBe('2026-09-14');
+  });
+
+  test('与 weekOfDate 互逆，且返回周一', () => {
+    const now = new Date(2026, 8, 19); // 2026-09-19
+    for (let week = 1; week <= 20; week += 1) {
+      const start = semesterStartFromWeek(week, now);
+      expect(weekOfDate(start, now)).toBe(week);
+      expect(dayOfWeekOf(isoToDate(start))).toBe(1);
+    }
   });
 });
 

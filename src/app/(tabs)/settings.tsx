@@ -12,7 +12,7 @@ import { notificationsSupported, requestNotificationPermission, scheduleClassRem
 import { clearBackgroundImage, pickBackgroundImage } from '@/services/background';
 import { useCoursesStore } from '@/store/courses';
 import { useSettingsStore } from '@/store/settings';
-import { isValidIsoDate } from '@/utils/date';
+import { currentWeekClamped, isValidIsoDate, semesterStartFromWeek } from '@/utils/date';
 import type { AppearanceStyle, BackgroundScrim, ThemeMode } from '@/models/course';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
@@ -43,6 +43,7 @@ export default function SettingsScreen() {
 
   const [semesterStart, setSemesterStart] = useState(settings.semesterStart);
   const [totalWeeks, setTotalWeeks] = useState(String(settings.totalWeeks));
+  const [currentWeekText, setCurrentWeekText] = useState('');
   const [remind, setRemind] = useState(String(settings.remindBeforeMinutes));
   const reschedule = async () => {
     await scheduleClassReminders(
@@ -67,6 +68,17 @@ export default function SettingsScreen() {
     });
     await reschedule();
     Alert.alert('已保存', `学期设置已保存（开学 ${semesterStart}，共 ${weeks} 周）。`);
+  };
+
+  const applyCurrentWeek = () => {
+    const week = Number(currentWeekText);
+    if (!Number.isInteger(week) || week < 1) {
+      Alert.alert('当前周无效', '请输入正整数周次，如 3。');
+      return;
+    }
+    const start = semesterStartFromWeek(week);
+    setSemesterStart(start);
+    Alert.alert('已计算开学日期', `按「第 ${week} 周」反推开学日期为 ${start}，请核对后保存。`);
   };
 
   const saveRemind = async () => {
@@ -133,6 +145,24 @@ export default function SettingsScreen() {
                 onChangeText={setTotalWeeks}
                 keyboardType="number-pad"
               />
+            </Field>
+            <Field label="当前周（第几周，反推开学日期）">
+              <View style={styles.weekRow}>
+                <TextInput
+                  style={[styles.input, styles.weekInput, { color: theme.text, borderColor: theme.border, borderWidth: theme.borderWidth }]}
+                  value={currentWeekText}
+                  onChangeText={setCurrentWeekText}
+                  placeholder={`当前第 ${currentWeekClamped(settings.semesterStart, settings.totalWeeks)} 周`}
+                  placeholderTextColor={theme.textSecondary}
+                  keyboardType="number-pad"
+                />
+                <Pressable
+                  onPress={applyCurrentWeek}
+                  style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}
+                >
+                  <ThemedText type="small">计算开学日期</ThemedText>
+                </Pressable>
+              </View>
             </Field>
             <Pressable
               onPress={saveSemester}
@@ -346,6 +376,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     fontSize: 16,
+  },
+  weekRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  weekInput: {
+    flex: 1,
   },
   button: {
     paddingHorizontal: Spacing.three,
