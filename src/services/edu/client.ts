@@ -7,14 +7,14 @@ import { bytesToBase64, encryptPassword } from '@/services/edu/rsa';
 // 配置：目标教务系统（河北师范大学 正方教务系统）。
 // 接口/字段以常见正方版本为准；若实际接口不同，改这里即可，逻辑无需改动。
 // ============================================================================
-const EDU_BASE = 'http://jwgl.hebtu.edu.cn';
+export const EDU_BASE = 'http://jwgl.hebtu.edu.cn';
 const LOGIN_PAGE = `${EDU_BASE}/xtgl/login_slogin.html`;
 const PUBLIC_KEY_URL = `${EDU_BASE}/xtgl/login_getPublicKey.html`;
 // 验证码图片接口。本校 login.js 的 refreshCode() 用 `_path + '/kaptcha'`，故为 /kaptcha（非 /xtgl/verifycodeServlet）。
 // 仅在连续登录失败触发验证码后才会在页面出现 #yzmDiv/#yzmPic。
 const CAPTCHA_URL = `${EDU_BASE}/kaptcha`;
-const SCHEDULE_INDEX = `${EDU_BASE}/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default`;
-const SCHEDULE_DATA = `${EDU_BASE}/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151`;
+export const SCHEDULE_INDEX = `${EDU_BASE}/kbcx/xskbcx_cxXskbcxIndex.html?gnmkdm=N2151&layout=default`;
+export const SCHEDULE_DATA = `${EDU_BASE}/kbcx/xskbcx_cxXsgrkb.html?gnmkdm=N2151`;
 
 // 正方学期代码：3=第一学期，12=第二学期，16=第三学期（短学期）。
 const XQM_FALL = '3';

@@ -1,5 +1,6 @@
 import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
+import { useRouter } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet } from 'react-native';
@@ -22,6 +23,7 @@ export default function ImportExportScreen() {
   const settings = useSettingsStore((s) => s.settings);
   const [status, setStatus] = useState('');
   const theme = useTheme();
+  const router = useRouter();
 
   const importExcel = async () => {
     try {
@@ -100,6 +102,12 @@ export default function ImportExportScreen() {
         </Pressable>
         <Pressable onPress={importIcs} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>从 ICS 导入</ThemedText>
+        </Pressable>
+        <Pressable onPress={() => router.push('/browser-import')} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
+          <ThemedText>从浏览器中获取</ThemedText>
+        </Pressable>
+        <Pressable onPress={() => router.push('/login')} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
+          <ThemedText>河北师范大学教务登录</ThemedText>
         </Pressable>
 
         <ThemedText type="subtitle" style={styles.section}>

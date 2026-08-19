@@ -28,7 +28,6 @@ export default function CoursesScreen() {
         <View style={styles.actions}>
           <ActionLink href="/course/new" label="添加" />
           <ActionLink href="/import" label="导入" />
-          <ActionLink href="/login" label="教务登录" />
         </View>
 
         <FlatList
