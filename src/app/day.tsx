@@ -25,9 +25,11 @@ export default function DayScheduleScreen() {
   const date = courseDate(settings.semesterStart, week, day);
   const now = new Date();
 
-  const timeOf = (period: number) => {
-    const p = settings.periods[period - 1];
-    return p ? `${p.start}~${p.end}` : '';
+  /** 整门课的起止时间：起始节次的开始 ~ 结束节次的结束（而非只显示第一节课的时间）。 */
+  const timeRangeOf = (course: { startPeriod: number; endPeriod: number }) => {
+    const start = settings.periods[course.startPeriod - 1];
+    const end = settings.periods[course.endPeriod - 1];
+    return start && end ? `${start.start}~${end.end}` : '';
   };
 
   return (
@@ -45,7 +47,7 @@ export default function DayScheduleScreen() {
             return (
               <View key={course.id} style={styles.item}>
                 <ThemedText type="small" themeColor="textSecondary">
-                  {course.startPeriod}-{course.endPeriod} 节 · {timeOf(course.startPeriod)}
+                  {course.startPeriod}-{course.endPeriod} 节 · {timeRangeOf(course)}
                 </ThemedText>
                 <CourseCard course={course} dimmed={dimmed} />
               </View>
