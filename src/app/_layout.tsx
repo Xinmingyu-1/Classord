@@ -51,7 +51,6 @@ export default function RootLayout() {
         <Stack.Screen name="course/new" options={{ title: '添加课程' }} />
         <Stack.Screen name="course/[id]" options={{ title: '课程详情' }} />
         <Stack.Screen name="import" options={{ title: '导入导出' }} />
-        <Stack.Screen name="browser-import" options={{ title: '从浏览器获取' }} />
         <Stack.Screen name="login" options={{ title: '河北师范大学教务登录' }} />
         <Stack.Screen name="periods" options={{ title: '节次时间表' }} />
       </Stack>

@@ -103,9 +103,6 @@ export default function ImportExportScreen() {
         <Pressable onPress={importIcs} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>从 ICS 导入</ThemedText>
         </Pressable>
-        <Pressable onPress={() => router.push('/browser-import')} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
-          <ThemedText>从浏览器中获取</ThemedText>
-        </Pressable>
         <Pressable onPress={() => router.push('/login')} style={[styles.button, { borderColor: theme.border, borderWidth: theme.borderWidth, borderRadius: theme.radius.md }]}>
           <ThemedText>河北师范大学教务登录</ThemedText>
         </Pressable>
